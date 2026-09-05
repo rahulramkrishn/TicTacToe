@@ -17,6 +17,9 @@ This log records every AI-assisted prompt execution and code modification throug
 | **AI-LOG-007** | 2026-09-05 | P006 / P007 | Memento Undo & Computer Strategy | Completed | GoF Memento, Option A terminal lock, GoF Strategy, BasicComputerMoveStrategy, 35 tests |
 | **AI-LOG-008** | 2026-09-05 | P008 | Domain Event & Scoreboard | Completed | GameCompletedEvent, Scoreboard Aggregate, Event Lifecycle, In-Process Dispatcher, 46 tests |
 | **AI-LOG-009** | 2026-09-05 | P009 | Application Layer & Repositories | Completed | GameService, ScoreboardService, InMemoryGameRepository, DTOs, Concurrency & Reset Event Drain, 31 tests |
+| **AI-LOG-010** | 2026-09-05 | P010.0 | API Architecture & Contract Planning | Completed | P010.0 architecture plan, endpoint catalog, DI lifetime design, error mapping |
+| **AI-LOG-010.1** | 2026-09-05 | P010.1 | API Contract & Architecture Corrections | Completed | Reconciled application boundaries, frozen ProblemDetails, DI lifetimes, expanded test suite |
+| **AI-LOG-010.2** | 2026-09-05 | P010.2 | API / Web Layer Implementation | Completed | REST API controllers, RFC 7807 ProblemDetails middleware, DI singletons, 24 integration tests |
 ---
 
 ## Detailed Entries
@@ -627,5 +630,121 @@ Accepted
   - Commit Hash: `05a7acb`
   - Commit Message: `feat(application): implement application layer orchestration`
 - **Documentation Closure Commit**:
+  - Commit Hash: `dd7da11`
   - Commit Message: `docs(ai): record P009 commit hash in implementation log`
+- **Status**: Completed & Closed
+
+---
+
+### AI-LOG-010: P010.0 API/Web Architecture & Contract Plan
+- **Date**: 2026-09-05
+- **Time**: 20:45:00+05:30
+- **Developer / Assistant**: Antigravity IDE / Pair Programming Assistant
+- **AI Tool**: Google Antigravity
+- **Prompt ID**: P010.0 (`docs/ai/prompts/P010.0-api-web-architecture-and-contract-plan.md`)
+- **Requirement IDs**: FR-01, FR-02, FR-03, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15, FR-16, NFR-01 to NFR-16
+- **ADRs Referenced**: ADR-001 (Monolith Architecture), ADR-002 (In-Memory Persistence), ADR-004 (Memento Pattern for Undo), ADR-005 (Strategy Pattern for Computer Moves), ADR-007 (GameCompleted Domain Event)
+- **Category**: Planning, Architecture Review & Contract Reconciliation
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Reviewed — Corrections Required (P010.1)
+- **Tests Added / Executed**: None (Planning phase only; 191 backend tests and 2 frontend tests verified passing)
+- **Files Created**:
+  - `docs/ai/prompts/P010.0-api-web-architecture-and-contract-plan.md`
+  - `docs/ai/reviews/P010.0-review.md`
+- **Summary**:
+  - Reconciled primary API contract (`docs/06-api-contract.md`) with Domain and Application layers.
+  - Defined endpoint catalog: 5 endpoints in `GamesController`, 2 endpoints in `ScoreboardController`.
+  - Defined RFC 7807 `ProblemDetails` error mapping matrix for all Domain and Application exceptions.
+  - Formulated DI registration plan: `InMemoryGameRepository` (Singleton), `InMemoryScoreboardRepository` (Singleton), `GameService` (Singleton to preserve `SemaphoreSlim` locks across requests), `ScoreboardService` (Singleton), `DomainEventDispatcher` (Singleton).
+  - Confirmed canonical `cellIndex: 0..8` addressing across all endpoints; confirmed `Game.Reset()` preserves `gameId` and drains pending events.
+  - Defined test strategy using `WebApplicationFactory<Program>` for integration and concurrency testing.
+  - Zero application code, controllers, or UI implemented in this planning gate.
+- **Status**: Completed — Corrections Required
+
+---
+
+### AI-LOG-010.1: P010.1 API Contract & Architecture Corrections
+- **Date**: 2026-09-05
+- **Time**: 20:50:00+05:30
+- **Developer / Assistant**: Antigravity IDE / Pair Programming Assistant
+- **AI Tool**: Google Antigravity
+- **Prompt ID**: P010.1 (`docs/ai/prompts/P010.1-api-contract-and-architecture-corrections.md`)
+- **Requirement IDs**: FR-01, FR-02, FR-03, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15, FR-16, NFR-01 to NFR-16
+- **ADRs Referenced**: ADR-001 (Monolith Architecture), ADR-002 (In-Memory Persistence), ADR-004 (Memento Pattern for Undo), ADR-005 (Strategy Pattern for Computer Moves), ADR-007 (GameCompleted Domain Event)
+- **Category**: Planning Correction & Architectural Verification
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Approved for Implementation (P010.2)
+- **Tests Added / Executed**: None (Planning phase only; 191 backend tests and 2 frontend tests verified passing)
+- **Files Created**:
+  - `docs/ai/prompts/P010.1-api-contract-and-architecture-corrections.md`
+  - `docs/ai/reviews/P010.1-review.md`
+- **Summary**:
+  - Reconciled application boundaries: P010 strictly consumes existing Application layer DTOs and commands; API request models exist strictly as transport-binding objects.
+  - Froze exact HTTP REST endpoints (`POST /api/games` -> 201 Created with Location header, `GET /api/games/{id}`, `POST /api/games/{id}/moves`, `POST /api/games/{id}/undo`, `POST /api/games/{id}/reset`, `GET /api/scoreboard`, `POST /api/scoreboard/reset`, `GET /health`).
+  - Froze RFC 7807 `ProblemDetails` schema with typed codes and generic client-safe 500 error sanitization.
+  - Specified configuration-driven CORS (`Cors:AllowedOrigins`, default `http://localhost:4200`).
+  - Standardized middleware naming: `ExceptionHandlingMiddleware`.
+  - Expanded test plan: real HTTP concurrency tests via `WebApplicationFactory`, in-memory aggregate persistence test, string enum serialization tests, negative route/verb tests, and architecture dependency tests.
+  - Confirmed zero application code or controllers implemented in this gate.
+- **Status**: Completed — Approved for Implementation
+
+---
+
+### AI-LOG-010.2: P010.2 REST API & HTTP Integration Implementation
+- **Date**: 2026-09-05
+- **Time**: 21:20:00+05:30
+- **Developer / Assistant**: Antigravity IDE / Pair Programming Assistant
+- **AI Tool**: Google Antigravity
+- **Prompt ID**: P010.2 (`docs/ai/prompts/P010.2 — API-Web Implementation.md`)
+- **Requirement IDs**: FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15, FR-16, FR-18, FR-19, NFR-01 to NFR-16
+- **ADRs Referenced**: ADR-001 (Monolith Architecture), ADR-002 (In-Memory Persistence), ADR-004 (Memento Pattern for Undo), ADR-005 (Strategy Pattern for Computer Moves), ADR-007 (GameCompleted Domain Event)
+- **Category**: Implementation, Integration Testing, Architecture Governance
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Reviewed & Approved
+- **Tests Added / Executed**:
+  - 24 new API integration tests in `TicTacToe.Tests/Api/` across 7 test fixtures:
+    - `GamesApiTests` (13 tests)
+    - `ScoreboardApiTests` (3 tests)
+    - `ApiValidationTests` (11 tests)
+    - `ApiSerializationTests` (3 tests)
+    - `ApiConcurrencyTests` (3 tests)
+    - `DiLifetimeTests` (4 tests)
+    - `ArchitectureBoundaryTests` (4 tests)
+  - Total backend tests: 233 passed, 0 failed, 0 skipped.
+  - Total frontend tests: 2 passed, 0 failed.
+  - Compiler / Analyzer warnings: 0 warnings, 0 errors (`--warnaserror` verified).
+- **Files Created**:
+  - `backend/TicTacToe.Api/Controllers/GamesController.cs`
+  - `backend/TicTacToe.Api/Controllers/ScoreboardController.cs`
+  - `backend/TicTacToe.Api/Middleware/ExceptionHandlingMiddleware.cs`
+  - `backend/TicTacToe.Api/Models/ApiRequests.cs`
+  - `backend/TicTacToe.Tests/Api/GamesApiTests.cs`
+  - `backend/TicTacToe.Tests/Api/ScoreboardApiTests.cs`
+  - `backend/TicTacToe.Tests/Api/ApiValidationTests.cs`
+  - `backend/TicTacToe.Tests/Api/ApiSerializationTests.cs`
+  - `backend/TicTacToe.Tests/Api/ApiConcurrencyTests.cs`
+  - `backend/TicTacToe.Tests/Api/DiLifetimeTests.cs`
+  - `backend/TicTacToe.Tests/Api/ArchitectureBoundaryTests.cs`
+  - `docs/ai/reviews/P010.2-review.md`
+- **Files Modified**:
+  - `backend/TicTacToe.Api/Program.cs`
+  - `backend/TicTacToe.Api/TicTacToe.Api.csproj`
+  - `docs/ai/REQUIREMENT-TRACEABILITY.md`
+- **Summary**:
+  - Implemented thin REST controllers (`GamesController`, `ScoreboardController`) delegating all orchestration to `IGameService` and `IScoreboardService`.
+  - Implemented centralized `ExceptionHandlingMiddleware` producing RFC 7807 ProblemDetails with exact type URI convention (`https://api.tictactoe.com/errors/{code-kebab-case}`), machine-readable `code`, HTTP `status`, `title`, `detail`, `instance`, and `traceId`.
+  - Configured `InvalidModelStateResponseFactory` and `JsonUnmappedMemberHandling.Disallow` to reject unknown properties (`row`/`column`) with 400 `MALFORMED_REQUEST`.
+  - Enforced `Game.CurrentPlayer` authority; mismatched client `player` returns 409 `INVALID_TURN`.
+  - Configured DI singletons (`GameService` holds per-game `SemaphoreSlim` locks, `InMemoryGameRepository`, `InMemoryScoreboardRepository`, `DomainEventDispatcher`, `BasicComputerMoveStrategy`, `ScoreboardService`).
+  - Verified atomic turn in Computer Mode and verified same-game concurrency (10 parallel requests to cell 4 -> exactly 1 200 OK, 9 409 Conflicts).
+  - Verified terminal move + pending event dispatch before game reset.
+  - Verified architectural boundaries via reflection tests.
+- **Implementation Commit**:
+  - Commit Hash: `ccf7dfd`
+  - Commit Message: `feat(api): implement REST API and HTTP integration`
+- **Documentation Closure Commit**:
+  - Commit Message: `docs(ai): record P010.2 commit hash in implementation log`
 - **Status**: Completed & Closed
