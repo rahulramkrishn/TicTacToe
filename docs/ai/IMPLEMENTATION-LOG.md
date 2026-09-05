@@ -13,7 +13,9 @@ This log records every AI-assisted prompt execution and code modification throug
 | **AI-LOG-002** | 2026-09-05 | P002 | Baseline & Hygiene | Completed | Repository hygiene, .gitignore, prompt normalization, audit structure verification |
 | **AI-LOG-003** | 2026-09-05 | P003 | Solution Scaffolding | Completed | .NET solution (5 projects), Angular 21 app, CORS, Health Check, smoke tests |
 | **AI-LOG-004** | 2026-09-05 | P003.1 | Verification & Gate | Completed | Scaffolding audit, Infrastructure decoupling, npm lockfile sync, reproducibility |
-| **AI-LOG-005** | 2026-09-05 | P004 | Domain Foundation | Completed | Pure domain model: Game aggregate, Board, CellIndex, Move, Player, 35 tests |
+| **AI-LOG-006** | 2026-09-05 | P005 | Game Rules, Win/Draw & Invariants | Completed | WinDetector, Game.MakeMove terminal rules, 40 tests |
+| **AI-LOG-007** | 2026-09-05 | P006 / P007 | Memento Undo & Computer Strategy | Completed | GoF Memento, Option A terminal lock, GoF Strategy, BasicComputerMoveStrategy, 35 tests |
+| **AI-LOG-008** | 2026-09-05 | P008 | Domain Event & Scoreboard | Completed | GameCompletedEvent, Scoreboard Aggregate, Event Lifecycle, In-Process Dispatcher, 46 tests |
 
 
 
@@ -507,5 +509,69 @@ Commit:
 Status:
 Accepted
 
+---
 
-
+### AI-LOG-008: P008 GameCompleted Domain Event & Scoreboard Implementation
+- **Date**: 2026-09-05
+- **Time**: 20:07:00+05:30
+- **Developer / Assistant**: Antigravity IDE / Pair Programming Assistant
+- **AI Tool**: Google Antigravity
+- **Prompt ID**: P008 / P008.1 / P008.2 / P008.3 / P008.4
+- **Requirement IDs**: FR-11, FR-12, FR-13, ADR-007, NFR-01, NFR-02, NFR-03
+- **ADRs Referenced**: ADR-007 (GameCompleted Domain Event), ADR-004, ADR-005
+- **Category**: Domain & Application Architecture Implementation
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Approved (P008.3 pre-commit verification passed; P008.4 commit authorized)
+- **Tests Added / Executed**:
+  - `GameEventEmissionTests.cs` (8 tests)
+  - `EventLifecycleTests.cs` (4 tests)
+  - `GameCompletedEventTests.cs` (7 tests)
+  - `ScoreboardTests.cs` (8 tests)
+  - `GameResetTests.cs` (5 tests)
+  - `ResetIndependenceTests.cs` (4 tests)
+  - `DomainEventDispatcherTests.cs` (3 tests)
+  - `GameCompletedEventHandlerTests.cs` (3 tests)
+  - `ComputerModeEventIntegrationTests.cs` (3 tests)
+  - Total backend tests: 160 passed, 0 failed, 0 warnings.
+  - Frontend smoke tests: 2 passed, 0 failed.
+- **Files Created**:
+  - `backend/TicTacToe.Domain/Events/IDomainEvent.cs`
+  - `backend/TicTacToe.Domain/Events/GameCompletedEvent.cs`
+  - `backend/TicTacToe.Domain/Entities/Scoreboard.cs`
+  - `backend/TicTacToe.Domain/Repositories/IScoreboardRepository.cs`
+  - `backend/TicTacToe.Application/Events/IDomainEventDispatcher.cs`
+  - `backend/TicTacToe.Application/Events/IDomainEventHandler.cs`
+  - `backend/TicTacToe.Application/Events/DomainEventDispatcher.cs`
+  - `backend/TicTacToe.Application/EventHandlers/GameCompletedEventHandler.cs`
+  - `backend/TicTacToe.Infrastructure/Repositories/InMemoryScoreboardRepository.cs`
+  - `backend/TicTacToe.Tests/Domain/GameEventEmissionTests.cs`
+  - `backend/TicTacToe.Tests/Domain/EventLifecycleTests.cs`
+  - `backend/TicTacToe.Tests/Domain/GameCompletedEventTests.cs`
+  - `backend/TicTacToe.Tests/Domain/ScoreboardTests.cs`
+  - `backend/TicTacToe.Tests/Domain/GameResetTests.cs`
+  - `backend/TicTacToe.Tests/Domain/ResetIndependenceTests.cs`
+  - `backend/TicTacToe.Tests/Application/DomainEventDispatcherTests.cs`
+  - `backend/TicTacToe.Tests/Application/GameCompletedEventHandlerTests.cs`
+  - `backend/TicTacToe.Tests/Application/ComputerModeEventIntegrationTests.cs`
+  - `docs/ai/reviews/P008-review.md`
+  - `docs/ai/prompts/P008-game-completed-domain-event-and-scoreboard-planning.md`
+  - `docs/ai/prompts/P008.1-correction-p008-plan.md`
+  - `docs/ai/prompts/P008.2-correction-event-lifecycle-and-guarantees.md`
+- **Files Modified**:
+  - `backend/TicTacToe.Domain/Aggregates/Game.cs`
+  - `docs/ADR-007-game-completed-domain-event.md`
+  - `docs/ai/REQUIREMENT-TRACEABILITY.md`
+- **Summary**:
+  - Implemented immutable `GameCompletedEvent` raised strictly on terminal transitions (`Won` or `Draw`) with self-contained payload.
+  - Reconciled event lifecycle per P008.2: `Game.Reset()` restores game play state but **MUST NOT clear `DomainEvents`**. Application layer owns event dispatch and calls `ClearDomainEvents()` upon success.
+  - Implemented thread-safe `Scoreboard` aggregate root with atomic idempotency deduplication (`_processedEventIds`) and counter reset preserving history.
+  - Implemented synchronous in-process `DomainEventDispatcher` and `GameCompletedEventHandler`.
+  - Implemented authoritative `InMemoryScoreboardRepository`.
+  - Maintained pure domain isolation (0 PackageReferences, 0 ProjectReferences).
+- **Implementation Commit**:
+  - Commit Hash: `34d05fb`
+  - Commit Message: `feat(domain): implement game completed event, scoreboard, and reset`
+- **Documentation Closure Commit**:
+  - In progress (`docs(ai): record P008 commit hash in implementation log`)
+- **Status**: Completed & Closed
