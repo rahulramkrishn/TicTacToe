@@ -251,6 +251,66 @@ Commit:
 Status:
 Accepted
 
+---
 
+### P004.1 — Domain Model Review and Boundary Verification
 
+Date: 2026-09-05
+Prompt ID: P004.1
 
+Requirements reviewed:
+FR-01 (Partial), FR-02 (Partial), FR-03 (Partial), FR-06 (Partial), FR-07 (Partial)
+
+Requirements confirmed deferred:
+FR-04 (Win Detection - P005), FR-05 (Draw Detection - P005), FR-08/FR-09/FR-10 (Undo/Memento - P006), FR-14 (Computer Strategy - P007), FR-11/FR-13 (Scoreboard & Events - P008), FR-15/FR-16 (API Layer - P011), FR-17 (Frontend Game - P009/P010)
+
+Objective:
+Perform focused architectural and DDD review of P004 domain model foundation, verify aggregate boundaries, evaluate Board.Clone() and IGameRepository placement, ensure pure domain exceptions with zero HTTP concepts, enforce full invariant verification on failed operations, and guarantee strict isolation against P005 features before proceeding.
+
+Specification documents used:
+- `docs/01-requirements.md`
+- `docs/04-ddd-and-domain-model.md`
+- `docs/05-architecture.md`
+- `docs/06-api-contract.md`
+- `docs/07-test-strategy.md`
+- `docs/09-traceability-matrix.md`
+- `docs/11-implementation-plan.md`
+- `docs/13-assumptions.md`
+- `docs/14-panel-review.md`
+- `docs/ADR-007-game-completed-domain-event.md`
+- `docs/ai/IMPLEMENTATION-PLAN.md`
+- `docs/ai/REQUIREMENT-TRACEABILITY.md`
+- `docs/ai/reviews/P004-review.md`
+
+AI-generated changes:
+- Clarified domain classification: `Player`, `GameMode`, `GameStatus` documented as Domain Enumerations; `CellIndex`, `GameId`, `Move` as Value Objects; `Game` as Aggregate Root; `Board` as internal Entity.
+- Reviewed and verified `Game` aggregate boundary ownership: `Board`, `MoveHistory`, `CurrentPlayer`, `Status`, `Winner`, `WinningCells`.
+- Confirmed `Winner`, `WinningCells`, `GameStatus.Won`, and `GameStatus.Draw` are appropriate domain state vocabulary in P004 without prematurely implementing state transition rules (P005).
+- Confirmed `Board.Clone()` as a low-level entity copy primitive rather than Memento.
+- Confirmed `IGameRepository` placement in `TicTacToe.Domain.Repositories` per DDD aggregate persistence boundary and dependency inversion principles.
+- Verified domain exception purity: zero HTTP status codes, zero ASP.NET dependencies, pure domain failure models.
+- Enhanced invariant tests in `backend/TicTacToe.Tests/Domain/GameTests.cs` to assert all 6 aggregate state facets remain intact upon failed moves (wrong player, occupied cell), and added xUnit Theory for `GameAlreadyCompletedException` on terminal states.
+- Corrected status classifications in `docs/ai/REQUIREMENT-TRACEABILITY.md` for FR-01, FR-02, FR-03, FR-06, and FR-07 to explicitly indicate partial implementation at the domain layer without overclaiming full application completion.
+- Produced formal review document `docs/ai/reviews/P004.1-domain-review.md`.
+
+Human changes:
+None.
+
+Tests:
+- `dotnet build backend/TicTacToe.sln`: Succeeded (0 errors, 0 warnings)
+- `dotnet test backend/TicTacToe.sln`: Passed 37 of 37 tests (35 domain unit tests + 2 smoke tests)
+- `npm test --prefix frontend -- --watch=false`: Passed 2 of 2 tests (zero regressions)
+
+Architectural decisions:
+- Verified complete zero-reference purity for `TicTacToe.Domain`.
+- Confirmed strict boundary separation: P004 owns domain state vocabulary; P005 owns state transition rules (win/draw detection).
+
+Review status:
+AI Review: Completed
+Human Review: Pending
+
+Commit:
+83ec7e1
+
+Status:
+Accepted
