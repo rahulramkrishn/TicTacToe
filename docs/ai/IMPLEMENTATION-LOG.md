@@ -375,3 +375,69 @@ a8a75ea
 Status:
 Accepted
 
+---
+
+### P006 — Memento Pattern / Undo
+
+Date: 2026-09-05
+Prompt ID: P006 & P006.1
+
+Requirements addressed:
+FR-08 (Domain portion: Implemented), FR-09 (Domain portion: Implemented), FR-10 (Memento logical-boundary mechanism established in P006; full Computer Mode pair-level integration deferred to P007), NFR-01, NFR-02, NFR-03
+
+Requirements intentionally deferred:
+FR-14 (Computer Strategy - P007), FR-11/FR-13 (Scoreboard & Events - P008), FR-15/FR-16 (API Layer - P011), FR-17 (Frontend Game - P009/P010)
+
+Objective:
+Implement snapshot-based Undo for the Game aggregate root using the Memento Pattern (GoF) in TicTacToe.Domain, ensuring defensive snapshot encapsulation, logical turn boundary support (Two Player vs Computer Mode), Option A terminal state handling, and 100% invariant preservation.
+
+Specification documents used:
+- `docs/01-requirements.md`
+- `docs/04-ddd-and-domain-model.md`
+- `docs/05-architecture.md`
+- `docs/06-api-contract.md`
+- `docs/07-test-strategy.md`
+- `docs/10-adr-template-and-initial-decisions.md` (ADR-004)
+- `docs/13-assumptions.md` (A-003, A-004)
+- `docs/ai/prompts/P006-memento-pattern-undo.md`
+
+AI-generated changes:
+- Created internal `GameMemento` record in `TicTacToe.Domain.Mementos` capturing defensive snapshots of `Board` (cloned), `CurrentPlayer`, `Status`, `Winner`, `WinningCells`, and `MoveHistory`.
+- Created domain exception `CannotUndoException` deriving from `DomainException`.
+- Enhanced `Game` aggregate root:
+  - Private internal caretaker `_undoStack = new Stack<GameMemento>()`.
+  - Property `public bool CanUndo => Status == GameStatus.InProgress && _undoStack.Count > 0`.
+  - Atomically validates cell vacancy before pushing Memento in `MakeMove`.
+  - Enforced logical snapshot boundary: TwoPlayer mode captures before each move; Computer mode captures before human X move (deferred pair integration to P007).
+  - Method `Undo()` restores exact prior aggregate state or throws `CannotUndoException` if not permitted.
+- Created `GameUndoTests` (12 unit tests) covering single/multiple undos, turn restoration, stack exhaustion, branching, atomicity on invalid moves, Option A terminal state protection, defensive isolation, and Computer mode pair-level undo.
+- Updated `docs/ai/REQUIREMENT-TRACEABILITY.md` and `docs/ai/ARCHITECTURE-TRACEABILITY.md`.
+- Produced formal review document `docs/ai/reviews/P006-review.md`.
+
+Human changes:
+None.
+
+Tests:
+- `dotnet build backend/TicTacToe.sln`: Succeeded (0 warnings, 0 errors)
+- `dotnet test backend/TicTacToe.sln`: Passed 79 of 79 tests (77 domain unit tests + 2 smoke tests)
+- `npm test --prefix frontend -- --watch=false`: Passed 2 of 2 tests (zero regressions)
+
+Architectural decisions:
+- Memento pattern applied with `Game` as Originator and Caretaker; `GameMemento` as internal value object.
+- Option A strictly preserved: completed games (Won / Draw) cannot be undone (`CanUndo == false`, `Undo()` throws `CannotUndoException`).
+- Logical move boundary: TwoPlayer captures every move; Computer mode captures before human X move to allow single pair-level undo once P007 is implemented.
+- P006 establishes Memento and logical snapshot-boundary mechanism; P007 owns Computer Strategy and orchestration guaranteeing human X and computer O form one logical turn before response is returned.
+- Restoration computational complexity: Memento selection/pop = O(1), Board restoration = O(9) (effectively constant for this domain), MoveHistory restoration = O(n), Overall restoration cost = proportional to snapshot size.
+- Zero external dependencies maintained in `TicTacToe.Domain`.
+
+Review status:
+AI Review: Completed
+Human Review: Completed & Approved
+
+Commit:
+184ee35
+
+Status:
+Accepted
+
+
