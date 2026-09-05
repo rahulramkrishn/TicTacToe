@@ -314,3 +314,64 @@ Commit:
 
 Status:
 Accepted
+
+---
+
+### P005 — Game Rules, Win Detection & Draw Detection (with P005.1 Encapsulation)
+
+Date: 2026-09-05
+Prompt ID: P005 & P005.1
+
+Requirements addressed:
+FR-04 (Domain portion: Implemented), FR-05 (Domain portion: Implemented), FR-01 (Partial), FR-02 (Partial), FR-03 (Partial), FR-06 (Partial), FR-07 (Partial), NFR-01, NFR-02, NFR-03
+
+Requirements intentionally deferred:
+FR-08/FR-09/FR-10 (Undo/Memento - P006), FR-14 (Computer Strategy - P007), FR-11/FR-13 (Scoreboard & Events - P008), FR-15/FR-16 (API Layer - P011), FR-17 (Frontend Game - P009/P010)
+
+Objective:
+Implement pure domain game rules, win detection across 8 canonical lines, draw detection, winning-cell identification, terminal state transitions, and turn progression inside TicTacToe.Domain, backed by comprehensive domain tests and strict encapsulation of domain rules.
+
+Specification documents used:
+- `docs/01-requirements.md`
+- `docs/04-ddd-and-domain-model.md`
+- `docs/05-architecture.md`
+- `docs/06-api-contract.md`
+- `docs/07-test-strategy.md`
+- `docs/10-adr-template-and-initial-decisions.md`
+- `docs/13-assumptions.md`
+- `docs/ai/prompts/P005-game-rules-win-draw.md`
+- `docs/ai/prompts/P005.1-correction-closure-prompt.md`
+
+AI-generated changes:
+- Created `WinResult` value object (`bool IsWin`, `Player? Winner`, `IReadOnlyList<int> WinningCells`) defensively isolated from caller mutation.
+- Created `WinDetector` stateless domain service in `TicTacToe.Domain.Services` encapsulating all 8 canonical winning lines as private definitions.
+- Enhanced `Board` entity with `IsFull` and `OccupiedCount` properties.
+- Enhanced `Game` aggregate root in `MakeMove`: coordinates win detection before draw detection, sets `Winner` and `WinningCells`, halts turn progression on terminal states, and enforces terminal state immutability.
+- Created `WinDetectorTests` (21 tests) covering all 8 winning lines for both X and O, empty/partial/draw boards, null checks, and defensive collection isolation.
+- Enhanced `GameTests` (18 tests) covering row, column, diagonal wins, draw, 9th-move win precedence over draw, terminal state move rejection, and atomicity invariants.
+- Updated `docs/ai/REQUIREMENT-TRACEABILITY.md` and `docs/ai/ARCHITECTURE-TRACEABILITY.md`.
+- Produced formal review document `docs/ai/reviews/P005-review.md`.
+
+Human changes:
+None.
+
+Tests:
+- `dotnet build backend/TicTacToe.sln`: Succeeded (0 warnings, 0 errors)
+- `dotnet test backend/TicTacToe.sln`: Passed 67 of 67 tests (65 domain unit tests + 2 smoke tests)
+- `npm test --prefix frontend -- --watch=false`: Passed 2 of 2 tests (zero regressions)
+
+Architectural decisions:
+- WinDetector encapsulated as a stateless domain service; winning combinations kept private.
+- Win evaluation strictly precedes full-board draw evaluation.
+- Zero external dependencies in `TicTacToe.Domain`.
+
+Review status:
+AI Review: Completed
+Human Review: Completed & Approved
+
+Commit:
+a8a75ea
+
+Status:
+Accepted
+
