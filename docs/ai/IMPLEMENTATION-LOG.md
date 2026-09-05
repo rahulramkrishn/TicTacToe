@@ -748,3 +748,78 @@ Accepted
 - **Documentation Closure Commit**:
   - Commit Message: `docs(ai): record P010.2 commit hash in implementation log`
 - **Status**: Completed & Closed
+
+---
+
+### P011 — Angular Presentation Layer
+
+- **Date**: 2026-09-05
+- **Prompt ID**: P011.0, P011.1, P011.2, P011.3
+- **Requirement IDs**: FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15, FR-16, FR-17, FR-18, FR-19, NFR-01 to NFR-16
+- **ADRs Referenced**: ADR-001 (Monolith Architecture), ADR-004 (Memento Pattern for Undo), ADR-005 (Strategy Pattern for Computer Moves), ADR-007 (GameCompleted Domain Event), ADR-008 (Toolchain & Scaffolding)
+- **Category**: Presentation Layer, Reactive State Management, UI Accessibility, Frontend Integration
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Reviewed & Approved
+- **Tests Added / Executed**:
+  - 43 frontend tests in `frontend/src/app/` across 9 test fixtures:
+    - `scoreboard-api.service.spec.ts` (2 tests)
+    - `game-api.service.spec.ts` (5 tests)
+    - `game.facade.spec.ts` (12 tests)
+    - `scoreboard.spec.ts` (2 tests)
+    - `game-controls.spec.ts` (4 tests)
+    - `move-history.spec.ts` (2 tests)
+    - `status-banner.spec.ts` (5 tests)
+    - `game-board.spec.ts` (8 tests)
+    - `app.spec.ts` (3 tests)
+  - Backend tests: 233 passed, 0 failed, 0 skipped.
+  - Total combined test suite: 276 passed, 0 failed.
+  - Production build: `npm run build --prefix frontend` succeeded with 0 errors.
+  - Backend build: `dotnet build backend/TicTacToe.sln --warnaserror` succeeded with 0 warnings, 0 errors.
+- **Files Created**:
+  - `frontend/src/app/models/game.models.ts`
+  - `frontend/src/app/services/api-config.ts`
+  - `frontend/src/app/services/game-api.service.ts`
+  - `frontend/src/app/services/game-api.service.spec.ts`
+  - `frontend/src/app/services/scoreboard-api.service.ts`
+  - `frontend/src/app/services/scoreboard-api.service.spec.ts`
+  - `frontend/src/app/services/game.facade.ts`
+  - `frontend/src/app/services/game.facade.spec.ts`
+  - `frontend/src/app/components/header/header.ts`, `.html`, `.css`
+  - `frontend/src/app/components/status-banner/status-banner.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/game-board/game-board.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/game-controls/game-controls.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/scoreboard/scoreboard.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/move-history/move-history.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/error-alert/error-alert.ts`, `.html`, `.css`
+  - `docs/ai/prompts/P011.0-angular-presentation-layer-architecture-and-plan.md`
+  - `docs/ai/prompts/P011.1-angular-presentation-layer-plan-correction-and-freeze.md`
+  - `docs/ai/reviews/P011.0-review.md`
+  - `docs/ai/reviews/P011.1-review.md`
+  - `docs/ai/reviews/P011.2-review.md`
+  - `docs/ai/reviews/P011.3-review.md`
+- **Files Modified**:
+  - `frontend/src/app/app.ts`
+  - `frontend/src/app/app.html`
+  - `frontend/src/app/app.css`
+  - `frontend/src/app/app.spec.ts`
+  - `frontend/src/app/app.config.ts`
+  - `frontend/src/index.html`
+  - `frontend/src/styles.css`
+  - `docs/ai/REQUIREMENT-TRACEABILITY.md`
+- **Summary**:
+  - Implemented the Angular Presentation Layer strictly as a reactive presentation adapter without duplicating any domain rules or business logic.
+  - Managed UI state via `GameFacade` leveraging Angular signals (`toSignal`, `computed`, `signal`) with OnPush-ready change detection.
+  - Implemented typed HTTP clients for `/api/games` and `/api/scoreboard` communicating strictly with canonical `cellIndex` (`0..8`).
+  - Enforced atomic Computer Mode turn: exactly 1 HTTP request per turn without artificial client delay or misleading "Thinking..." banner.
+  - Handled RFC 7807 ProblemDetails capturing all 7 properties (`type`, `title`, `status`, `code`, `detail`, `instance`, `traceId`) and surfaced via dismissible `ErrorAlertComponent`.
+  - Enforced in-flight operation guarding with `finalize()` loading reset on both success and error.
+  - Built accessible UI conforming to WCAG 2.1 AA with 9 semantic `<button>` elements, dynamic ARIA labels, native `[disabled]` bindings, focus-visible indicators, and live region announcements (`aria-live="polite"`).
+  - Maintained distinct session semantics: `resetGame()` preserves existing `gameId` and scoreboard, while `newGame()` creates a fresh session with a new `gameId`.
+  - Authoritative scoreboard hydration from backend API responses with zero client-side increments.
+- **Implementation Commit**:
+  - Commit Hash: `9c852cf`
+  - Commit Message: `feat(ui): implement Angular presentation layer`
+- **Documentation Closure Commit**:
+  - Commit Message: `docs(ai): record P011 commit hash in implementation log`
+- **Status**: Completed & Closed
