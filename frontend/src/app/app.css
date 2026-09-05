@@ -24,6 +24,11 @@
   width: 100%;
 }
 
+.game-column > *,
+.sidebar-column > * {
+  width: 100%;
+}
+
 .sidebar-column {
   display: flex;
   flex-direction: column;
