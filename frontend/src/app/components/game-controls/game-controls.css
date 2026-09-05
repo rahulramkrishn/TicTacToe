@@ -1,0 +1,80 @@
+.controls-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.875rem;
+  width: 100%;
+  padding: 0.5rem 0;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.action-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.action-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid var(--color-x);
+  outline-offset: 2px;
+}
+
+.action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-icon {
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.undo-btn:hover:not(:disabled) {
+  border-color: rgba(56, 189, 248, 0.4);
+  color: var(--color-x);
+}
+
+.reset-btn:hover:not(:disabled) {
+  border-color: rgba(251, 146, 60, 0.4);
+  color: #fb923c;
+}
+
+.new-game-btn {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: var(--color-x);
+}
+
+.new-game-btn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: var(--color-x);
+  box-shadow: 0 0 16px var(--glow-x);
+}

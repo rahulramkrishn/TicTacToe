@@ -1,0 +1,38 @@
+<header class="app-header">
+  <div class="header-brand">
+    <div class="logo-icon" aria-hidden="true">
+      <span class="x-mark">✕</span>
+      <span class="o-mark">◯</span>
+    </div>
+    <div class="title-group">
+      <h1 class="main-title">Tic-Tac-Toe</h1>
+      <p class="subtitle">Enterprise DDD Architecture &bull; Angular 21 &bull; .NET 8</p>
+    </div>
+  </div>
+
+  <div class="mode-selector-container">
+    <label class="mode-label" id="mode-label">Game Mode:</label>
+    <div class="segmented-control" role="radiogroup" aria-labelledby="mode-label">
+      <button
+        type="button"
+        role="radio"
+        class="mode-btn"
+        [class.active]="facade.mode() === 'TwoPlayer'"
+        [attr.aria-checked]="facade.mode() === 'TwoPlayer'"
+        [disabled]="facade.loading()"
+        (click)="switchMode('TwoPlayer')">
+        Two Player
+      </button>
+      <button
+        type="button"
+        role="radio"
+        class="mode-btn"
+        [class.active]="facade.mode() === 'Computer'"
+        [attr.aria-checked]="facade.mode() === 'Computer'"
+        [disabled]="facade.loading()"
+        (click)="switchMode('Computer')">
+        vs Computer
+      </button>
+    </div>
+  </div>
+</header>

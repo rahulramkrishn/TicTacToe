@@ -1,0 +1,37 @@
+<div class="controls-toolbar" role="toolbar" aria-label="Game Actions">
+  <button
+    type="button"
+    class="action-btn undo-btn"
+    id="btn-undo"
+    [disabled]="!facade.canUndo()"
+    [attr.aria-disabled]="!facade.canUndo()"
+    (click)="facade.undo()"
+    title="Undo previous move">
+    <span class="btn-icon" aria-hidden="true">↶</span>
+    <span class="btn-text">Undo</span>
+  </button>
+
+  <button
+    type="button"
+    class="action-btn reset-btn"
+    id="btn-reset-game"
+    [disabled]="facade.loading() || !facade.isInitialized()"
+    [attr.aria-disabled]="facade.loading() || !facade.isInitialized()"
+    (click)="facade.resetGame()"
+    title="Reset current game board (preserves game session and scoreboard)">
+    <span class="btn-icon" aria-hidden="true">↺</span>
+    <span class="btn-text">Reset Board</span>
+  </button>
+
+  <button
+    type="button"
+    class="action-btn new-game-btn"
+    id="btn-new-game"
+    [disabled]="facade.loading()"
+    [attr.aria-disabled]="facade.loading()"
+    (click)="facade.newGame(facade.mode())"
+    title="Start a fresh game session with a new gameId">
+    <span class="btn-icon" aria-hidden="true">+</span>
+    <span class="btn-text">New Game</span>
+  </button>
+</div>

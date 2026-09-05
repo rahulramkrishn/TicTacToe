@@ -1,0 +1,47 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.game-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  align-items: center;
+  width: 100%;
+}
+
+.sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+@media (max-width: 860px) {
+  .app-container {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-column {
+    order: 2;
+  }
+}

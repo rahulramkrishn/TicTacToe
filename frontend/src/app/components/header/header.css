@@ -1,0 +1,128 @@
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem 2rem;
+  background: var(--surface-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glass);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.logo-icon .x-mark {
+  color: var(--color-x);
+  text-shadow: 0 0 10px var(--glow-x);
+}
+
+.logo-icon .o-mark {
+  color: var(--color-o);
+  text-shadow: 0 0 10px var(--glow-o);
+}
+
+.title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-title {
+  font-size: 1.625rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
+}
+
+.mode-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mode-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.segmented-control {
+  display: inline-flex;
+  padding: 0.25rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+}
+
+.mode-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mode-btn:hover:not(:disabled) {
+  color: var(--text-primary);
+}
+
+.mode-btn.active {
+  background: var(--surface-active);
+  color: var(--text-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mode-btn:focus-visible {
+  outline: 2px solid var(--color-x);
+  outline-offset: 2px;
+}
+
+.mode-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mode-selector-container {
+    justify-content: space-between;
+  }
+}

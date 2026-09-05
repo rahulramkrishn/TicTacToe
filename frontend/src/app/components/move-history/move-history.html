@@ -1,0 +1,28 @@
+<section class="history-panel" aria-label="Move History Log">
+  <div class="panel-header">
+    <h2 class="panel-title">Move History</h2>
+    <span class="move-badge">{{ facade.moveHistory().length }} Moves</span>
+  </div>
+
+  <div class="history-scroll-container">
+    @if (facade.moveHistory().length === 0) {
+      <div class="empty-history">
+        <span class="empty-icon" aria-hidden="true">⏱</span>
+        <span class="empty-text">No moves played yet</span>
+      </div>
+    } @else {
+      <ol class="moves-list">
+        @for (move of facade.moveHistory(); track move.moveNumber) {
+          <li class="move-item" [class.move-x]="move.player === 'X'" [class.move-o]="move.player === 'O'">
+            <span class="move-number">#{{ move.moveNumber }}</span>
+            <div class="move-badge-icon">{{ move.player }}</div>
+            <div class="move-details">
+              <span class="move-cell">Cell {{ move.cellIndex }}</span>
+              <span class="move-coords">(Row {{ getRow(move.cellIndex) }}, Col {{ getColumn(move.cellIndex) }})</span>
+            </div>
+          </li>
+        }
+      </ol>
+    }
+  </div>
+</section>

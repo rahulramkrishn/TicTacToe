@@ -1,0 +1,34 @@
+@if (facade.error(); as err) {
+  <aside class="error-banner" role="alert" aria-live="assertive">
+    <div class="error-header">
+      <div class="error-title-group">
+        <span class="error-icon" aria-hidden="true">⚠️</span>
+        <strong class="error-title">{{ err.title }} ({{ err.code }})</strong>
+      </div>
+      <button
+        type="button"
+        class="dismiss-btn"
+        (click)="facade.dismissError()"
+        aria-label="Dismiss error notification">
+        ✕
+      </button>
+    </div>
+
+    <p class="error-detail">{{ err.detail }}</p>
+
+    <div class="error-footer">
+      @if (err.traceId) {
+        <span class="trace-id">Trace ID: <code>{{ err.traceId }}</code></span>
+      }
+      @if (!facade.isInitialized()) {
+        <button
+          type="button"
+          class="retry-btn"
+          [disabled]="facade.loading()"
+          (click)="facade.initGame(facade.mode())">
+          Retry Initialization
+        </button>
+      }
+    </div>
+  </aside>
+}

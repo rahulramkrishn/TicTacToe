@@ -1,0 +1,43 @@
+<div class="status-banner" role="status" aria-live="polite">
+  @if (!facade.isInitialized()) {
+    <div class="status-content initializing">
+      <span class="status-dot pulse"></span>
+      <span class="status-text">Connecting to game server...</span>
+    </div>
+  } @else if (facade.status() === 'InProgress') {
+    <div class="status-content in-progress" [class.turn-x]="facade.currentPlayer() === 'X'" [class.turn-o]="facade.currentPlayer() === 'O'">
+      <div class="player-badge">
+        <span class="mark-symbol">{{ facade.currentPlayer() }}</span>
+      </div>
+      <div class="turn-info">
+        <span class="status-label">Current Turn</span>
+        <span class="status-value">Player {{ facade.currentPlayer() }}</span>
+      </div>
+      @if (facade.loading()) {
+        <span class="spinner" aria-label="Processing move"></span>
+      }
+    </div>
+  } @else if (facade.status() === 'Won') {
+    <div class="status-content won" [class.winner-x]="facade.winner() === 'X'" [class.winner-o]="facade.winner() === 'O'">
+      <span class="trophy-icon" aria-hidden="true">🏆</span>
+      <div class="winner-info">
+        <span class="winner-title">Victory!</span>
+        <span class="winner-name">
+          @if (facade.mode() === 'Computer' && facade.winner() === 'O') {
+            Computer Wins!
+          } @else {
+            Player {{ facade.winner() }} Wins!
+          }
+        </span>
+      </div>
+    </div>
+  } @else if (facade.status() === 'Draw') {
+    <div class="status-content draw">
+      <span class="draw-icon" aria-hidden="true">🤝</span>
+      <div class="draw-info">
+        <span class="draw-title">Stalemate</span>
+        <span class="draw-subtitle">Game ended in a Draw</span>
+      </div>
+    </div>
+  }
+</div>

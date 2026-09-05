@@ -1,0 +1,30 @@
+<div class="board-wrapper">
+  <div
+    class="game-grid"
+    role="grid"
+    aria-label="Tic-Tac-Toe Game Board"
+    [class.board-disabled]="facade.loading() || facade.isGameOver()">
+    @for (cell of facade.board(); track $index) {
+      <button
+        type="button"
+        role="gridcell"
+        class="grid-cell"
+        [id]="'cell-' + $index"
+        [class.cell-x]="cell === 'X'"
+        [class.cell-o]="cell === 'O'"
+        [class.winning-cell]="isWinningCell($index)"
+        [attr.aria-label]="getCellAriaLabel($index, cell)"
+        [attr.aria-disabled]="isCellDisabled(cell)"
+        [disabled]="isCellDisabled(cell)"
+        (click)="onCellClick($index)">
+        <span class="cell-glyph" aria-hidden="true">
+          @if (cell === 'X') {
+            ✕
+          } @else if (cell === 'O') {
+            ◯
+          }
+        </span>
+      </button>
+    }
+  </div>
+</div>

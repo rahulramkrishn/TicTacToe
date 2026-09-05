@@ -1,0 +1,47 @@
+<section class="scoreboard-panel" aria-label="Session Scoreboard">
+  <div class="panel-header">
+    <h2 class="panel-title">Scoreboard</h2>
+    <button
+      type="button"
+      class="reset-scores-btn"
+      id="btn-reset-scoreboard"
+      [disabled]="facade.loading()"
+      [attr.aria-disabled]="facade.loading()"
+      (click)="facade.resetScoreboard()"
+      title="Reset session score counters to zero">
+      Reset Scores
+    </button>
+  </div>
+
+  <div class="score-cards-grid">
+    <div class="score-card card-x" aria-label="Player X wins">
+      <div class="card-badge">✕</div>
+      <div class="score-info">
+        <span class="score-label">Player X</span>
+        <span class="score-count" id="score-x-wins">{{ facade.scoreboard()?.xWins ?? 0 }}</span>
+      </div>
+    </div>
+
+    <div class="score-card card-draws" aria-label="Draws">
+      <div class="card-badge">🤝</div>
+      <div class="score-info">
+        <span class="score-label">Draws</span>
+        <span class="score-count" id="score-draws">{{ facade.scoreboard()?.draws ?? 0 }}</span>
+      </div>
+    </div>
+
+    <div class="score-card card-o" aria-label="Player O wins">
+      <div class="card-badge">◯</div>
+      <div class="score-info">
+        <span class="score-label">
+          @if (facade.mode() === 'Computer') {
+            Computer
+          } @else {
+            Player O
+          }
+        </span>
+        <span class="score-count" id="score-o-wins">{{ facade.scoreboard()?.oWins ?? 0 }}</span>
+      </div>
+    </div>
+  </div>
+</section>
