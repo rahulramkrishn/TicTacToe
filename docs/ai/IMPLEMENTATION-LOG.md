@@ -20,6 +20,9 @@ This log records every AI-assisted prompt execution and code modification throug
 | **AI-LOG-010** | 2026-09-05 | P010.0 | API Architecture & Contract Planning | Completed | P010.0 architecture plan, endpoint catalog, DI lifetime design, error mapping |
 | **AI-LOG-010.1** | 2026-09-05 | P010.1 | API Contract & Architecture Corrections | Completed | Reconciled application boundaries, frozen ProblemDetails, DI lifetimes, expanded test suite |
 | **AI-LOG-010.2** | 2026-09-05 | P010.2 | API / Web Layer Implementation | Completed | REST API controllers, RFC 7807 ProblemDetails middleware, DI singletons, 24 integration tests |
+| **AI-LOG-011** | 2026-09-05 | P011 | Angular Presentation Layer | Completed | Angular components, GameFacade, typed API services, accessibility, 43 frontend tests |
+| **AI-LOG-011.5** | 2026-09-05 | P011.5 | End-to-End Smoke Test & UI Fixes | Completed | E2E browser smoke test, board sizing, IPv4 binding, card overflow resolution |
+| **AI-LOG-012** | 2026-09-05 | P012 | Architecture Simplification & Event Removal | Ready for Commit | Removed in-process event infrastructure; synchronous GameService orchestration; 195 backend / 43 frontend tests |
 ---
 
 ## Detailed Entries
@@ -858,5 +861,259 @@ Accepted
   - Commit Hash: `6aeff72`
   - Commit Message: `fix(ui): resolve game board sizing, IPv4 binding, and scoreboard card overflow`
 - **Documentation Closure Commit**:
+  - Commit Hash: `307b0f4`
   - Commit Message: `docs(ai): record P011.5 commit hash in implementation log`
+- **Status**: Completed & Closed
+
+---
+
+### AI-LOG-012: P012 Architecture Simplification & In-Process Domain Event Infrastructure Removal
+- **Date**: 2026-09-05
+- **Time**: 23:30:00+05:30
+- **Developer / Assistant**: Antigravity IDE / Pair Programming Assistant
+- **AI Tool**: Google Antigravity
+- **Prompt ID**: P012.0 / P012.1 (`docs/ai/reviews/P012-review.md`)
+- **Requirement IDs**: FR-01 through FR-19, NFR-01 through NFR-16
+- **Category**: Architecture Simplification & Refactoring
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Reviewed & Approved by Principal Engineer Gate
+- **Tests Executed**:
+  - Backend: 195 passed, 0 failed across all units and integration tests.
+  - Frontend: 43 passed, 0 failed across 9 spec files.
+  - Frontend Production Build: Succeeded (186.68 kB bundle).
+  - Obsolete Event Symbol Grep: 0 references found.
+- **Files Deleted**:
+  - `backend/TicTacToe.Domain/Events/IDomainEvent.cs`
+  - `backend/TicTacToe.Domain/Events/GameCompletedEvent.cs`
+  - `backend/TicTacToe.Application/Events/IDomainEventDispatcher.cs`
+  - `backend/TicTacToe.Application/Events/DomainEventDispatcher.cs`
+  - `backend/TicTacToe.Application/Events/IDomainEventHandler.cs`
+  - `backend/TicTacToe.Application/EventHandlers/GameCompletedEventHandler.cs`
+  - `backend/TicTacToe.Tests/Domain/GameCompletedEventTests.cs`
+  - `backend/TicTacToe.Tests/Domain/GameEventEmissionTests.cs`
+  - `backend/TicTacToe.Tests/Domain/EventLifecycleTests.cs`
+  - `backend/TicTacToe.Tests/Application/DomainEventDispatcherTests.cs`
+  - `backend/TicTacToe.Tests/Application/GameCompletedEventHandlerTests.cs`
+  - `backend/TicTacToe.Tests/Application/ComputerModeEventIntegrationTests.cs`
+- **Files Modified**:
+  - `backend/TicTacToe.Domain/Entities/Scoreboard.cs` (added direct thread-safe `RecordWin` and `RecordDraw`, removed event tracking)
+  - `backend/TicTacToe.Domain/Aggregates/Game.cs` (removed `_domainEvents`, `DomainEvents`, `ClearDomainEvents()`, and event emission)
+  - `backend/TicTacToe.Application/Services/GameService.cs` (implemented synchronous scoreboard consequence orchestration on terminal transition)
+  - `backend/TicTacToe.Api/Program.cs` (removed event dispatcher DI registrations)
+  - `backend/TicTacToe.Tests/Domain/ScoreboardTests.cs` (updated tests for `RecordWin`, `RecordDraw`, and parallel thread safety)
+  - `backend/TicTacToe.Tests/Domain/ResetIndependenceTests.cs` (updated to call `RecordWin`)
+  - `backend/TicTacToe.Tests/Domain/GameResetTests.cs` (removed obsolete event collection assertions)
+  - `backend/TicTacToe.Tests/Application/GameServiceTests.cs` (removed dispatcher tests; added `MakeMove_OnAlreadyCompletedGame_ThrowsAndDoesNotDoubleCountScoreboard`)
+  - `backend/TicTacToe.Tests/Application/GameConcurrencyTests.cs` (removed dispatcher from test setup)
+  - `backend/TicTacToe.Tests/Api/DiLifetimeTests.cs` (removed dispatcher check)
+  - `backend/TicTacToe.Tests/Api/GamesApiTests.cs` (renamed test method)
+  - `docs/ai/ARCHITECTURE-TRACEABILITY.md` (updated bounded context and recorded Section 4 ADR)
+- **Files Created**:
+  - `docs/ai/reviews/P012-review.md`
+  - Total backend tests: 233 passed, 0 failed, 0 skipped.
+  - Total frontend tests: 2 passed, 0 failed.
+  - Compiler / Analyzer warnings: 0 warnings, 0 errors (`--warnaserror` verified).
+- **Files Created**:
+  - `backend/TicTacToe.Api/Controllers/GamesController.cs`
+  - `backend/TicTacToe.Api/Controllers/ScoreboardController.cs`
+  - `backend/TicTacToe.Api/Middleware/ExceptionHandlingMiddleware.cs`
+  - `backend/TicTacToe.Api/Models/ApiRequests.cs`
+  - `backend/TicTacToe.Tests/Api/GamesApiTests.cs`
+  - `backend/TicTacToe.Tests/Api/ScoreboardApiTests.cs`
+  - `backend/TicTacToe.Tests/Api/ApiValidationTests.cs`
+  - `backend/TicTacToe.Tests/Api/ApiSerializationTests.cs`
+  - `backend/TicTacToe.Tests/Api/ApiConcurrencyTests.cs`
+  - `backend/TicTacToe.Tests/Api/DiLifetimeTests.cs`
+  - `backend/TicTacToe.Tests/Api/ArchitectureBoundaryTests.cs`
+  - `docs/ai/reviews/P010.2-review.md`
+- **Files Modified**:
+  - `backend/TicTacToe.Api/Program.cs`
+  - `backend/TicTacToe.Api/TicTacToe.Api.csproj`
+  - `docs/ai/REQUIREMENT-TRACEABILITY.md`
+- **Summary**:
+  - Implemented thin REST controllers (`GamesController`, `ScoreboardController`) delegating all orchestration to `IGameService` and `IScoreboardService`.
+  - Implemented centralized `ExceptionHandlingMiddleware` producing RFC 7807 ProblemDetails with exact type URI convention (`https://api.tictactoe.com/errors/{code-kebab-case}`), machine-readable `code`, HTTP `status`, `title`, `detail`, `instance`, and `traceId`.
+  - Configured `InvalidModelStateResponseFactory` and `JsonUnmappedMemberHandling.Disallow` to reject unknown properties (`row`/`column`) with 400 `MALFORMED_REQUEST`.
+  - Enforced `Game.CurrentPlayer` authority; mismatched client `player` returns 409 `INVALID_TURN`.
+  - Configured DI singletons (`GameService` holds per-game `SemaphoreSlim` locks, `InMemoryGameRepository`, `InMemoryScoreboardRepository`, `DomainEventDispatcher`, `BasicComputerMoveStrategy`, `ScoreboardService`).
+  - Verified atomic turn in Computer Mode and verified same-game concurrency (10 parallel requests to cell 4 -> exactly 1 200 OK, 9 409 Conflicts).
+  - Verified terminal move + pending event dispatch before game reset.
+  - Verified architectural boundaries via reflection tests.
+- **Implementation Commit**:
+  - Commit Hash: `ccf7dfd`
+  - Commit Message: `feat(api): implement REST API and HTTP integration`
+- **Documentation Closure Commit**:
+  - Commit Message: `docs(ai): record P010.2 commit hash in implementation log`
+- **Status**: Completed & Closed
+
+---
+
+### P011 — Angular Presentation Layer
+
+- **Date**: 2026-09-05
+- **Prompt ID**: P011.0, P011.1, P011.2, P011.3
+- **Requirement IDs**: FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15, FR-16, FR-17, FR-18, FR-19, NFR-01 to NFR-16
+- **ADRs Referenced**: ADR-001 (Monolith Architecture), ADR-004 (Memento Pattern for Undo), ADR-005 (Strategy Pattern for Computer Moves), ADR-007 (GameCompleted Domain Event), ADR-008 (Toolchain & Scaffolding)
+- **Category**: Presentation Layer, Reactive State Management, UI Accessibility, Frontend Integration
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Reviewed & Approved
+- **Tests Added / Executed**:
+  - 43 frontend tests in `frontend/src/app/` across 9 test fixtures:
+    - `scoreboard-api.service.spec.ts` (2 tests)
+    - `game-api.service.spec.ts` (5 tests)
+    - `game.facade.spec.ts` (12 tests)
+    - `scoreboard.spec.ts` (2 tests)
+    - `game-controls.spec.ts` (4 tests)
+    - `move-history.spec.ts` (2 tests)
+    - `status-banner.spec.ts` (5 tests)
+    - `game-board.spec.ts` (8 tests)
+    - `app.spec.ts` (3 tests)
+  - Backend tests: 233 passed, 0 failed, 0 skipped.
+  - Total combined test suite: 276 passed, 0 failed.
+  - Production build: `npm run build --prefix frontend` succeeded with 0 errors.
+  - Backend build: `dotnet build backend/TicTacToe.sln --warnaserror` succeeded with 0 warnings, 0 errors.
+- **Files Created**:
+  - `frontend/src/app/models/game.models.ts`
+  - `frontend/src/app/services/api-config.ts`
+  - `frontend/src/app/services/game-api.service.ts`
+  - `frontend/src/app/services/game-api.service.spec.ts`
+  - `frontend/src/app/services/scoreboard-api.service.ts`
+  - `frontend/src/app/services/scoreboard-api.service.spec.ts`
+  - `frontend/src/app/services/game.facade.ts`
+  - `frontend/src/app/services/game.facade.spec.ts`
+  - `frontend/src/app/components/header/header.ts`, `.html`, `.css`
+  - `frontend/src/app/components/status-banner/status-banner.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/game-board/game-board.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/game-controls/game-controls.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/scoreboard/scoreboard.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/move-history/move-history.ts`, `.html`, `.css`, `.spec.ts`
+  - `frontend/src/app/components/error-alert/error-alert.ts`, `.html`, `.css`
+  - `docs/ai/prompts/P011.0-angular-presentation-layer-architecture-and-plan.md`
+  - `docs/ai/prompts/P011.1-angular-presentation-layer-plan-correction-and-freeze.md`
+  - `docs/ai/reviews/P011.0-review.md`
+  - `docs/ai/reviews/P011.1-review.md`
+  - `docs/ai/reviews/P011.2-review.md`
+  - `docs/ai/reviews/P011.3-review.md`
+- **Files Modified**:
+  - `frontend/src/app/app.ts`
+  - `frontend/src/app/app.html`
+  - `frontend/src/app/app.css`
+  - `frontend/src/app/app.spec.ts`
+  - `frontend/src/app/app.config.ts`
+  - `frontend/src/index.html`
+  - `frontend/src/styles.css`
+  - `docs/ai/REQUIREMENT-TRACEABILITY.md`
+- **Summary**:
+  - Implemented the Angular Presentation Layer strictly as a reactive presentation adapter without duplicating any domain rules or business logic.
+  - Managed UI state via `GameFacade` leveraging Angular signals (`toSignal`, `computed`, `signal`) with OnPush-ready change detection.
+  - Implemented typed HTTP clients for `/api/games` and `/api/scoreboard` communicating strictly with canonical `cellIndex` (`0..8`).
+  - Enforced atomic Computer Mode turn: exactly 1 HTTP request per turn without artificial client delay or misleading "Thinking..." banner.
+  - Handled RFC 7807 ProblemDetails capturing all 7 properties (`type`, `title`, `status`, `code`, `detail`, `instance`, `traceId`) and surfaced via dismissible `ErrorAlertComponent`.
+  - Enforced in-flight operation guarding with `finalize()` loading reset on both success and error.
+  - Built accessible UI conforming to WCAG 2.1 AA with 9 semantic `<button>` elements, dynamic ARIA labels, native `[disabled]` bindings, focus-visible indicators, and live region announcements (`aria-live="polite"`).
+  - Maintained distinct session semantics: `resetGame()` preserves existing `gameId` and scoreboard, while `newGame()` creates a fresh session with a new `gameId`.
+  - Authoritative scoreboard hydration from backend API responses with zero client-side increments.
+- **Implementation Commit**:
+  - Commit Hash: `9c852cf`
+  - Commit Message: `feat(ui): implement Angular presentation layer`
+- **Documentation Closure Commit**:
+  - Commit Message: `docs(ai): record P011 commit hash in implementation log`
+- **Status**: Completed & Closed
+
+---
+
+### P011.5 — E2E Product Smoke Test and UX/Layout Hardening
+
+- **Date**: 2026-09-05
+- **Prompt ID**: P011.5
+- **Requirement IDs**: FR-01 through FR-19, NFR-09 (Usability), NFR-10 (Accessibility), NFR-11 (Responsive UI)
+- **Category**: UX Quality, Defect Resolution, End-to-End Verification
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Reviewed & Approved
+- **Tests Added / Executed**:
+  - Full automated E2E browser smoke test covering 12 interactive scenarios.
+  - Backend test suite: 233 passed, 0 failed.
+  - Frontend test suite: 43 passed, 0 failed.
+  - Production build: Succeeded (0 errors).
+- **Files Modified**:
+  - `frontend/package.json` (added `--host 0.0.0.0` to ensure dual-stack IPv4/IPv6 loopback reachability on Windows)
+  - `frontend/src/app/app.css` (enforced 100% width on column child components)
+  - `frontend/src/app/components/game-board/game-board.css` (enforced `:host { display: block; width: 100%; }`, min-height 360px on grid, min-height 95px on cells)
+  - `frontend/src/app/components/game-controls/game-controls.css` (added `:host` block)
+  - `frontend/src/app/components/move-history/move-history.css` (added `:host` block)
+  - `frontend/src/app/components/scoreboard/scoreboard.css` (added `:host` block, adjusted card padding and gap to prevent sidebar overflow)
+  - `frontend/src/app/components/status-banner/status-banner.css` (added `:host` block)
+- **Files Created**:
+  - `docs/ai/reviews/P011.5-review.md`
+- **Summary**:
+  - Resolved IPv4 loopback `127.0.0.1:4200` connection failure by binding Angular dev server to `0.0.0.0`.
+  - Resolved game board collapsing to a miniature 60px box inside flexbox column by setting `:host` display/width rules and establishing min-height on grid and cells.
+  - Resolved scoreboard card overflow on the 340px sidebar panel.
+- **Implementation Commit**:
+  - Commit Hash: `6aeff72`
+  - Commit Message: `fix(ui): resolve game board sizing, IPv4 binding, and scoreboard card overflow`
+- **Documentation Closure Commit**:
+  - Commit Hash: `307b0f4`
+  - Commit Message: `docs(ai): record P011.5 commit hash in implementation log`
+- **Status**: Completed & Closed
+
+---
+
+### AI-LOG-012: P012 Architecture Simplification & In-Process Domain Event Infrastructure Removal
+- **Date**: 2026-09-05
+- **Time**: 23:30:00+05:30
+- **Developer / Assistant**: Antigravity IDE / Pair Programming Assistant
+- **AI Tool**: Google Antigravity
+- **Prompt ID**: P012.0 / P012.1 (`docs/ai/reviews/P012-review.md`)
+- **Requirement IDs**: FR-01 through FR-19, NFR-01 through NFR-16
+- **Category**: Architecture Simplification & Refactoring
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Reviewed & Approved by Principal Engineer Gate
+- **Tests Executed**:
+  - Backend: 195 passed, 0 failed across all units and integration tests.
+  - Frontend: 43 passed, 0 failed across 9 spec files.
+  - Frontend Production Build: Succeeded (186.68 kB bundle).
+  - Obsolete Event Symbol Grep: 0 references found.
+- **Files Deleted**:
+  - `backend/TicTacToe.Domain/Events/IDomainEvent.cs`
+  - `backend/TicTacToe.Domain/Events/GameCompletedEvent.cs`
+  - `backend/TicTacToe.Application/Events/IDomainEventDispatcher.cs`
+  - `backend/TicTacToe.Application/Events/DomainEventDispatcher.cs`
+  - `backend/TicTacToe.Application/Events/IDomainEventHandler.cs`
+  - `backend/TicTacToe.Application/EventHandlers/GameCompletedEventHandler.cs`
+  - `backend/TicTacToe.Tests/Domain/GameCompletedEventTests.cs`
+  - `backend/TicTacToe.Tests/Domain/GameEventEmissionTests.cs`
+  - `backend/TicTacToe.Tests/Domain/EventLifecycleTests.cs`
+  - `backend/TicTacToe.Tests/Application/DomainEventDispatcherTests.cs`
+  - `backend/TicTacToe.Tests/Application/GameCompletedEventHandlerTests.cs`
+  - `backend/TicTacToe.Tests/Application/ComputerModeEventIntegrationTests.cs`
+- **Files Modified**:
+  - `backend/TicTacToe.Domain/Entities/Scoreboard.cs` (added direct thread-safe `RecordWin` and `RecordDraw`, removed event tracking)
+  - `backend/TicTacToe.Domain/Aggregates/Game.cs` (removed `_domainEvents`, `DomainEvents`, `ClearDomainEvents()`, and event emission)
+  - `backend/TicTacToe.Application/Services/GameService.cs` (implemented synchronous scoreboard consequence orchestration on terminal transition)
+  - `backend/TicTacToe.Api/Program.cs` (removed event dispatcher DI registrations)
+  - `backend/TicTacToe.Tests/Domain/ScoreboardTests.cs` (updated tests for `RecordWin`, `RecordDraw`, and parallel thread safety)
+  - `backend/TicTacToe.Tests/Domain/ResetIndependenceTests.cs` (updated to call `RecordWin`)
+  - `backend/TicTacToe.Tests/Domain/GameResetTests.cs` (removed obsolete event collection assertions)
+  - `backend/TicTacToe.Tests/Application/GameServiceTests.cs` (removed dispatcher tests; added `MakeMove_OnAlreadyCompletedGame_ThrowsAndDoesNotDoubleCountScoreboard`)
+  - `backend/TicTacToe.Tests/Application/GameConcurrencyTests.cs` (removed dispatcher from test setup)
+  - `backend/TicTacToe.Tests/Api/DiLifetimeTests.cs` (removed dispatcher check)
+  - `backend/TicTacToe.Tests/Api/GamesApiTests.cs` (renamed test method)
+  - `docs/ai/ARCHITECTURE-TRACEABILITY.md` (updated bounded context and recorded Section 4 ADR)
+- **Files Created**:
+  - `docs/ai/reviews/P012-review.md`
+- **Summary**:
+  - Removed all in-process Domain Event infrastructure (`GameCompletedEvent`, `IDomainEventDispatcher`, `DomainEventDispatcher`, `GameCompletedEventHandler`, and event queueing/clearing) without modifying external API or Angular behavior.
+  - Replaced event-driven scoreboard updates with direct, synchronous Application-layer orchestration inside `GameService` guarded by explicit terminal transition detection (`previousStatus == GameStatus.InProgress && game.Status == Won/Draw`).
+  - Documented multi-aggregate persistence failure semantics: synchronous application orchestration within process consistency boundary without distributed transaction overhead.
+  - Reduced test suite from 233 to 195 backend tests by removing 33 obsolete event infrastructure tests and adding business safeguard tests. All 43 frontend tests continue passing.
+- **Implementation Commit**:
+  - Commit Hash: `5c9266d`
+  - Commit Message: `refactor(arch): remove in-process domain events in favor of synchronous application orchestration`
+- **Documentation Closure Commit**:
+  - Commit Message: `docs(ai): record P012 commit hash in implementation log`
 - **Status**: Completed & Closed
