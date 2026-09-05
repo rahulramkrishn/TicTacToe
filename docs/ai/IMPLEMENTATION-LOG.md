@@ -104,7 +104,7 @@ Review:
 Pending human review.
 
 Commit:
-PENDING_COMMIT
+27a26e6 (Baseline commit)
 
 Status:
 Accepted
