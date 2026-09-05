@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Implemented (Phase P008)
 
 ## Context
 
