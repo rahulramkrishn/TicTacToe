@@ -440,4 +440,72 @@ Commit:
 Status:
 Accepted
 
+---
+
+### P007 — Computer Strategy Pattern: Specification, Design & Implementation
+
+Date: 2026-09-05
+Prompt ID: P007
+
+Requirements addressed:
+FR-10 (Domain portion: Implemented and Verified end-to-end), FR-14 (Domain portion: Implemented), NFR-01, NFR-02, NFR-03
+
+Requirements intentionally deferred:
+FR-11/FR-13 (Scoreboard & GameCompleted Domain Event - P008), FR-15/FR-16 (API Layer - P010/P011), FR-17 (Frontend Game UI - P009/P010)
+
+Objective:
+Implement the automated Computer Player (playing as Player O) using the Strategy Pattern (GoF) in TicTacToe.Domain.Services, execute candidate evaluations purely using detached cloned boards without mutating aggregate state, reuse WinDetector.CheckWin as the single source of truth, and complete the Computer Mode turn orchestration on the Game aggregate root preserving the P006 Memento snapshot boundary.
+
+Specification documents used:
+- `docs/01-requirements.md` (FR-10, FR-14)
+- `docs/04-ddd-and-domain-model.md` §7
+- `docs/05-architecture.md` §3, §7
+- `docs/07-test-strategy.md`
+- `docs/10-adr-template-and-initial-decisions.md` (ADR-004, ADR-005)
+- `docs/13-assumptions.md` (A-005, A-006)
+- `docs/ai/prompts/P007-computer-strategy-pattern-specification,design-and-implementation.md`
+
+AI-generated changes:
+- Created domain Strategy interface `IComputerMoveStrategy` (`CellIndex SelectMove(Board board)`).
+- Created deterministic concrete strategy `BasicComputerMoveStrategy` implementing the frozen 5-tier priority hierarchy:
+  1. Winning move for Player O (deterministic lowest index if multiple).
+  2. Block winning move for Player X (deterministic lowest threatened index if multiple; documented unavoidable fork position limitation).
+  3. Center cell (4).
+  4. Corner cells in deterministic order: 0, 2, 6, 8.
+  5. First available cell in natural order: 0..8.
+- Preserved single source of truth: candidate simulation clones board (`Board.Clone()`), places candidate mark, and calls `WinDetector.CheckWin`. Zero algorithmic duplication.
+- Enhanced `Game` aggregate root:
+  - Added `PlayComputerMove(IComputerMoveStrategy strategy)` with strict invocation guards (`InvalidOperationException` for TwoPlayer, `GameAlreadyCompletedException` for terminal games, `InvalidTurnException` if not Player O's turn, `ArgumentNullException` for null strategy).
+  - Added `ExecuteTurn(CellIndex humanMove, IComputerMoveStrategy strategy)` orchestrating human-to-computer progression, stopping immediately on terminal human moves (Win/Draw) without invoking the computer.
+- Preserved P006 Memento boundary: human X move captures snapshot; computer O move captures no second snapshot. Single `Undo()` restores state before the human+computer pair. Option A terminal enforcement blocks undo after terminal outcomes.
+- Created `ComputerStrategyTests` (21 tests) and `ComputerModeIntegrationTests` (14 tests).
+- Updated `docs/ai/REQUIREMENT-TRACEABILITY.md`, `docs/ai/ARCHITECTURE-TRACEABILITY.md`.
+- Produced formal review document `docs/ai/reviews/P007-review.md`.
+
+Human changes:
+None.
+
+Tests:
+- `dotnet build backend/TicTacToe.sln`: Succeeded (0 warnings, 0 errors)
+- `dotnet test backend/TicTacToe.sln`: Passed 114 of 114 tests (112 domain unit/integration tests + 2 smoke tests)
+- `npm test --prefix frontend -- --watch=false`: Passed 2 of 2 tests (zero regressions)
+
+Architectural decisions:
+- Strategy Pattern applied with `IComputerMoveStrategy` and single concrete strategy `BasicComputerMoveStrategy`.
+- `Game` aggregate owns turn orchestration without introducing an artificial Application layer prematurely.
+- Pure domain isolation: `TicTacToe.Domain` retains 0 PackageReferences and 0 ProjectReferences.
+- Candidate evaluation is strictly pure, leaving live board and aggregate state untouched.
+- Single source of truth for winning combinations preserved via `WinDetector.CheckWin`.
+
+Review status:
+AI Review: Completed
+Human Review: Approved
+
+Commit:
+49bc908
+
+Status:
+Accepted
+
+
 
