@@ -53,6 +53,16 @@ public sealed class Board
     public bool IsOccupied(CellIndex index) => _cells[index.Value].HasValue;
 
     /// <summary>
+    /// Indicates whether all 9 cells are occupied.
+    /// </summary>
+    public bool IsFull => _cells.All(c => c.HasValue);
+
+    /// <summary>
+    /// Returns the count of occupied cells on the board (0..9).
+    /// </summary>
+    public int OccupiedCount => _cells.Count(c => c.HasValue);
+
+    /// <summary>
     /// Places a player's mark on an empty cell.
     /// Invariant: Occupied cells cannot be overwritten.
     /// </summary>

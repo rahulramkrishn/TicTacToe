@@ -2,11 +2,12 @@ namespace TicTacToe.Domain.Aggregates;
 
 using TicTacToe.Domain.Entities;
 using TicTacToe.Domain.Exceptions;
+using TicTacToe.Domain.Services;
 using TicTacToe.Domain.ValueObjects;
 
 /// <summary>
 /// Aggregate Root representing a Tic Tac Toe game session.
-/// Enforces all business invariants regarding game lifecycle, turn alternation, and move legality.
+/// Enforces all business invariants regarding game lifecycle, turn alternation, move legality, win detection, and draw detection.
 /// </summary>
 public sealed class Game
 {
@@ -47,8 +48,10 @@ public sealed class Game
     /// 2. Player must match CurrentPlayer.
     /// 3. Cell must be unoccupied.
     /// 4. Move is appended to history.
-    /// 5. Turn alternates to the other player.
-    /// Note: Win and Draw detection are intentionally deferred to Phase 2 (P005).
+    /// 5. Win detection is evaluated first against the 8 canonical lines.
+    /// 6. If won: status transitions to Won, Winner and WinningCells are recorded, and turn progression halts.
+    /// 7. If not won and board is full: status transitions to Draw, and turn progression halts.
+    /// 8. If non-terminal: turn alternates to the other player.
     /// </summary>
     public void MakeMove(Player player, CellIndex cellIndex)
     {
@@ -66,6 +69,21 @@ public sealed class Game
 
         var moveNumber = _moveHistory.Count + 1;
         _moveHistory.Add(new Move(moveNumber, player, cellIndex));
+
+        var winResult = WinDetector.CheckWin(Board);
+        if (winResult.IsWin)
+        {
+            Status = GameStatus.Won;
+            Winner = winResult.Winner;
+            WinningCells = winResult.WinningCells;
+            return;
+        }
+
+        if (Board.IsFull)
+        {
+            Status = GameStatus.Draw;
+            return;
+        }
 
         CurrentPlayer = CurrentPlayer.Other();
     }
