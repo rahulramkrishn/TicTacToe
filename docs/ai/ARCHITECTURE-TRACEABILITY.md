@@ -13,7 +13,7 @@ This document traces architectural requirements extracted from the repository sp
 | Win and Draw Detection | `docs/01-requirements.md` (FR-04, FR-05), `docs/04-ddd-and-domain-model.md` §8 | `TicTacToe.Domain/Services/WinDetector.cs`, `Game.cs` | Pure domain service evaluating 8 canonical lines and full-board draw with win precedence. |
 | Canonical Cell Addressing (`0..8`) | `docs/01-requirements.md` (FR-02), `docs/06-api-contract.md`, `docs/13-assumptions.md` (A-001) | `TicTacToe.Domain/ValueObjects/CellIndex.cs`, DTOs | Single integer `0..8` used across domain, DTOs, and API requests. Row/Col derived in frontend. |
 | Snapshot Memento for Undo | `docs/04-ddd-and-domain-model.md`, `docs/10-adr-template-and-initial-decisions.md` (ADR-004) | `TicTacToe.Domain/Mementos/GameMemento.cs`, `Game.cs`, `CannotUndoException.cs` | Snapshot captured prior to move execution. Memento selection/pop = O(1), Board restoration = O(9) (effectively constant for this domain), MoveHistory restoration = O(n), Overall restoration cost = proportional to snapshot size. Option A disables undo after completion. |
-| Replaceable Computer Move Strategy | `docs/04-ddd-and-domain-model.md`, `docs/10-adr-template-and-initial-decisions.md` (ADR-005) | `TicTacToe.Domain/Strategies/IComputerMoveStrategy.cs` | Strategy pattern isolating AI decision-making from the `Game` aggregate. |
+| Replaceable Computer Move Strategy | `docs/04-ddd-and-domain-model.md`, `docs/10-adr-template-and-initial-decisions.md` (ADR-005) | `TicTacToe.Domain/Services/IComputerMoveStrategy.cs`, `BasicComputerMoveStrategy.cs` | Strategy pattern isolating AI decision-making from the `Game` aggregate. Deterministic 5-tier priority hierarchy. |
 | Mandatory `GameCompleted` Domain Event | `docs/04-ddd-and-domain-model.md`, `docs/ADR-007-game-completed-domain-event.md` | `TicTacToe.Domain/Events/GameCompletedEvent.cs` | Domain event raised exactly once upon game transition to `Won` or `Draw`. |
 | Synchronous In-Process Event Dispatching | `docs/ADR-007-game-completed-domain-event.md`, `docs/13-assumptions.md` (A-007) | `TicTacToe.Application/Events/IDomainEventDispatcher.cs` | In-memory dispatcher routing domain events to application handlers synchronously. |
 | Session-Level Scoreboard Isolation | `docs/04-ddd-and-domain-model.md`, `docs/06-api-contract.md` | `TicTacToe.Domain/Entities/Scoreboard.cs`, `ScoreboardHandler` | Scoreboard is maintained outside the `Game` aggregate lifecycle, updated via domain event. |
@@ -61,8 +61,8 @@ This document traces architectural requirements extracted from the repository sp
   └── WinDetector (Pure rule evaluation: 3 rows, 3 columns, 2 diagonals, draw)
 
   [ Strategy Pattern ]
-  ├── IComputerMoveStrategy (interface: SelectMove(Board, Player))
-  └── RuleBasedComputerStrategy (Priority: 1. Win, 2. Block, 3. Center, 4. Corner, 5. Any)
+  ├── IComputerMoveStrategy (interface: SelectMove(Board))
+  └── BasicComputerMoveStrategy (Priority: 1. Win, 2. Block, 3. Center, 4. Corner, 5. Any)
 
   [ Domain Events ]
   └── GameCompletedEvent (GameId, ResultStatus, Winner)

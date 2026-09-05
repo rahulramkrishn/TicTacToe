@@ -111,6 +111,61 @@ public sealed class Game
     }
 
     /// <summary>
+    /// Executes a computer move using the provided strategy.
+    /// Invariants enforced:
+    /// 1. Strategy must not be null (ArgumentNullException).
+    /// 2. Mode must be Computer (InvalidOperationException).
+    /// 3. Game must be InProgress (GameAlreadyCompletedException).
+    /// 4. Current player must be Player O (InvalidTurnException).
+    /// </summary>
+    public CellIndex PlayComputerMove(IComputerMoveStrategy strategy)
+    {
+        if (strategy == null)
+        {
+            throw new ArgumentNullException(nameof(strategy));
+        }
+
+        if (Mode != GameMode.Computer)
+        {
+            throw new InvalidOperationException("Cannot execute a computer move in TwoPlayer mode.");
+        }
+
+        if (Status != GameStatus.InProgress)
+        {
+            throw new GameAlreadyCompletedException(Status);
+        }
+
+        if (CurrentPlayer != Player.O)
+        {
+            throw new InvalidTurnException(Player.O, CurrentPlayer);
+        }
+
+        var cell = strategy.SelectMove(Board);
+        MakeMove(Player.O, cell);
+        return cell;
+    }
+
+    /// <summary>
+    /// Orchestrates a logical turn in Computer Mode:
+    /// 1. Executes the human X move.
+    /// 2. If the human move concludes the game (Win or Draw), halts immediately without invoking the computer.
+    /// 3. If the game remains InProgress, invokes the computer strategy to execute Player O's response.
+    /// Returns the executed human move and optional computer move (null if game ended on the human move).
+    /// </summary>
+    public (CellIndex HumanMove, CellIndex? ComputerMove) ExecuteTurn(CellIndex humanMove, IComputerMoveStrategy strategy)
+    {
+        MakeMove(Player.X, humanMove);
+
+        if (Status != GameStatus.InProgress)
+        {
+            return (humanMove, null);
+        }
+
+        var computerMove = PlayComputerMove(strategy);
+        return (humanMove, computerMove);
+    }
+
+    /// <summary>
     /// Restores the aggregate state to the exact state immediately preceding the last logical move boundary.
     /// Invariants enforced:
     /// 1. Undo is disabled after game completion under Option A (ADR-004).
