@@ -1,8 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\TicTacToe.Domain\TicTacToe.Domain.csproj" />
-    <ProjectReference Include="..\TicTacToe.Application\TicTacToe.Application.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

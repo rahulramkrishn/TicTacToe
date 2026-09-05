@@ -12,6 +12,8 @@ This log records every AI-assisted prompt execution and code modification throug
 | **AI-LOG-001** | 2026-09-05 | P001 | Analysis & Discovery | Completed | Complete discovery, document inventory, traceability, and architectural analysis artifacts |
 | **AI-LOG-002** | 2026-09-05 | P002 | Baseline & Hygiene | Completed | Repository hygiene, .gitignore, prompt normalization, audit structure verification |
 | **AI-LOG-003** | 2026-09-05 | P003 | Solution Scaffolding | Completed | .NET solution (5 projects), Angular 21 app, CORS, Health Check, smoke tests |
+| **AI-LOG-004** | 2026-09-05 | P003.1 | Verification & Gate | Completed | Scaffolding audit, Infrastructure decoupling, npm lockfile sync, reproducibility |
+
 
 
 ---
@@ -152,5 +154,45 @@ fe5862d
 
 Status:
 Accepted
+
+---
+
+### P003.1 — Architecture and Toolchain Verification
+
+Date: 2026-09-05
+Prompt ID: P003.1
+
+Requirements:
+Architecture compliance, toolchain verification, reproducibility, zero business logic verification
+
+Objective:
+Perform strict verification of P003 scaffolding before domain implementation, decouple Infrastructure from Application, synchronize package-lock.json for standard npm ci reproducibility.
+
+AI-generated changes:
+- Decoupled `TicTacToe.Infrastructure` by removing project reference to `TicTacToe.Application` in `TicTacToe.Infrastructure.csproj`
+- Synchronized `frontend/package-lock.json` so standard `npm ci` executes without flags and exits with code 0
+- Updated ADR-008 (`docs/ai/decisions/ADR-008-solution-scaffolding-and-toolchain.md`) documenting alternatives, rationale, and layer decoupling
+- Produced formal review document `docs/ai/reviews/P003.1-review.md`
+
+Human changes:
+None.
+
+Tests:
+- `dotnet restore backend/TicTacToe.sln`: Succeeded
+- `dotnet build backend/TicTacToe.sln`: Succeeded (0 warnings, 0 errors)
+- `dotnet test backend/TicTacToe.sln`: Passed (2 tests)
+- `npm ci` (in `frontend/`): Succeeded (469 packages, 0 vulnerabilities)
+- `npm run build` (in `frontend/`): Succeeded (3.5s)
+- `npm test -- --watch=false` (in `frontend/`): Passed (2 tests in Vitest)
+
+Review:
+Scaffolding strictly compliant with clean architecture, DDD layer isolation, toolchain constraints, and zero business logic.
+
+Commit:
+PENDING_P003.1_COMMIT
+
+Status:
+Accepted
+
 
 
