@@ -67,19 +67,19 @@ This document traces architectural requirements extracted from the repository sp
   [ Domain Events ]
   └── GameCompletedEvent (GameId, ResultStatus, Winner)
 
-  [ Repository Interfaces (Domain/Application) ]
-  ├── IGameRepository (GetById, Save, Delete)
-  └── IScoreboardRepository (Get, Save, Reset)
+  [ Repository Interfaces (Domain) ]
+  ├── IGameRepository (GetByIdAsync, SaveAsync)
+  └── IScoreboardRepository (GetScoreboardAsync, SaveScoreboardAsync)
+
+  [ Infrastructure Repositories ]
+  ├── InMemoryGameRepository (ConcurrentDictionary<GameId, Game>)
+  └── InMemoryScoreboardRepository (Authoritative in-memory Scoreboard aggregate)
 
   [ Application Services & Use Cases ]
-  ├── CreateGameUseCase
-  ├── MakeMoveUseCase (Orchestrates human move + computer move if mode is Computer)
-  ├── UndoMoveUseCase
-  ├── ResetGameUseCase
-  ├── GetGameStateUseCase
-  ├── GetScoreboardUseCase
-  ├── ResetScoreboardUseCase
-  └── GameCompletedEventHandler (Handles GameCompletedEvent and increments Scoreboard)
+  ├── IGameService / GameService (CreateGameAsync, GetGameAsync, MakeMoveAsync, UndoAsync, ResetGameAsync)
+  ├── IScoreboardService / ScoreboardService (GetScoreboardAsync, ResetScoreboardAsync)
+  ├── IDomainEventDispatcher / DomainEventDispatcher (Synchronous in-process event router)
+  └── GameCompletedEventHandler (Handles GameCompletedEvent and updates Scoreboard)
 ====================================================================================
 ```
 
