@@ -57,14 +57,14 @@ This document maps all Functional Requirements (FR-01 to FR-19) and Non-Function
 
 | Requirement | Design Decision | Implementation Area | Verification Test | Evidence | Current Status |
 |---|---|---|---|---|---|
-| **FR-01** (Create Game) | ADR-001, ADR-002 | `Game` Aggregate, `CreateGameHandler`, `GamesController` | `CreateGame_InitializesEmptyBoard_And_XPlayer` | Unit / Integration Test | Baseline Planned |
-| **FR-02** (Board 0..8) | A-001, ADR-001 | `Board` Value Object, `CellIndex` Value Object | `Board_RequiresExactlyNineCells_And_ValidIndices` | Unit Test | Baseline Planned |
-| **FR-03** (Turns) | ADR-001, ADR-003 | `Game.MakeMove()`, `CurrentPlayer` transition | `MakeMove_ValidMove_AlternatesPlayer` | Unit Test | Baseline Planned |
-| **FR-04** (Win Detection) | ADR-001, ADR-007 | `WinDetector` Domain Service, `GameCompleted` event | `WinDetector_DetectsAllRowsColumnsDiagonals` | Unit Test | Baseline Planned |
-| **FR-05** (Draw Detection) | ADR-001, ADR-007 | `WinDetector` Domain Service, `GameCompleted` event | `MakeMove_FullBoardNoWinner_TransitionsToDraw` | Unit Test | Baseline Planned |
-| **FR-06** (Move Validation) | ADR-001, ADR-003 | `Game.MakeMove()` invariants, ProblemDetails | `MakeMove_OccupiedOrInvalidCell_ThrowsDomainException` | Unit / API Test | Baseline Planned |
-| **FR-07** (Move History) | A-001, ADR-001 | `Move` Entity/ValueObject, `MoveDto` | `MoveHistory_PreservesChronologicalOrder` | Unit Test | Baseline Planned |
-| **FR-08** (Undo Availability)| ADR-004 (Option A) | `Game.CanUndo()`, `GameStatus` check | `CanUndo_DisabledWhenEmptyOrCompleted` | Unit Test | Baseline Planned |
+| **FR-01** (Create Game) | ADR-001, ADR-002 | `Game` Aggregate, `CreateGameHandler`, `GamesController` | `Create_InitializesGameInStandardInitialState` | Unit / Integration Test | Partially Implemented (Domain Init OK) |
+| **FR-02** (Board 0..8) | A-001, ADR-001 | `Board` Entity, `CellIndex` Value Object | `BoardTests`, `CellIndexTests` | Unit Test | Implemented in Domain |
+| **FR-03** (Turns) | ADR-001, ADR-003 | `Game.MakeMove()`, `CurrentPlayer` transition | `MakeMove_ValidMove_PlacesMarkAppendsHistoryAndAlternatesTurn` | Unit Test | Implemented in Domain |
+| **FR-04** (Win Detection) | ADR-001, ADR-007 | `WinDetector` Domain Service, `GameCompleted` event | `WinDetector_DetectsAllRowsColumnsDiagonals` | Unit Test | Intentionally Deferred to P005 |
+| **FR-05** (Draw Detection) | ADR-001, ADR-007 | `WinDetector` Domain Service, `GameCompleted` event | `MakeMove_FullBoardNoWinner_TransitionsToDraw` | Unit Test | Intentionally Deferred to P005 |
+| **FR-06** (Move Validation) | ADR-001, ADR-003 | `Game.MakeMove()` invariants, Domain Exceptions | `MakeMove_OccupiedCell_ThrowsCellOccupiedExceptionAndDoesNotMutateState` | Unit / API Test | Implemented in Domain |
+| **FR-07** (Move History) | A-001, ADR-001 | `Move` Value Object, `Game.MoveHistory` | `MakeMove_SequentialValidMoves_AlternatesPlayerCorrectly` | Unit Test | Implemented in Domain |
+| **FR-08** (Undo Availability)| ADR-004 (Option A) | `Game.CanUndo()`, `GameStatus` check | `CanUndo_DisabledWhenEmptyOrCompleted` | Unit Test | Intentionally Deferred to P006 |
 | **FR-09** (Two Player Undo) | ADR-004, Memento | `GameMemento`, `Game.Undo()` | `Undo_TwoPlayer_RevertsSingleMove_And_RestoresPlayer` | Unit Test | Baseline Planned |
 | **FR-10** (Computer Undo) | ADR-004, Memento | `GameMemento`, `Game.Undo()` | `Undo_ComputerMode_RevertsMovePair_And_RestoresHuman` | Unit Test | Baseline Planned |
 | **FR-11** (Scoreboard) | ADR-007 | `Scoreboard` Entity, `GameCompletedHandler` | `Scoreboard_UpdatesExactlyOnce_OnGameCompleted` | Unit / Integration Test | Baseline Planned |

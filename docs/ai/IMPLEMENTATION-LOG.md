@@ -13,6 +13,8 @@ This log records every AI-assisted prompt execution and code modification throug
 | **AI-LOG-002** | 2026-09-05 | P002 | Baseline & Hygiene | Completed | Repository hygiene, .gitignore, prompt normalization, audit structure verification |
 | **AI-LOG-003** | 2026-09-05 | P003 | Solution Scaffolding | Completed | .NET solution (5 projects), Angular 21 app, CORS, Health Check, smoke tests |
 | **AI-LOG-004** | 2026-09-05 | P003.1 | Verification & Gate | Completed | Scaffolding audit, Infrastructure decoupling, npm lockfile sync, reproducibility |
+| **AI-LOG-005** | 2026-09-05 | P004 | Domain Foundation | Completed | Pure domain model: Game aggregate, Board, CellIndex, Move, Player, 35 tests |
+
 
 
 
@@ -193,6 +195,62 @@ e613b53
 
 Status:
 Accepted
+
+---
+
+### P004 — Pure Domain Model Foundation
+
+Date: 2026-09-05
+Prompt ID: P004
+
+Requirements addressed:
+FR-01 (Partial), FR-02, FR-03, FR-06, FR-07, NFR-01, NFR-02, NFR-03
+
+Requirements intentionally deferred:
+FR-04 (Win Detection - P005), FR-05 (Draw Detection - P005), FR-08/FR-09/FR-10 (Undo/Memento - P006), FR-14 (Computer Strategy - P007), FR-11/FR-13 (Scoreboard & Events - P008), FR-15/FR-16 (API Layer - P011), FR-17 (Frontend Game - P009/P010)
+
+Objective:
+Implement the pure domain model foundation (Aggregate Root, Entities, Value Objects, Domain Exceptions, Repository Abstraction) with comprehensive unit tests and zero external framework dependencies.
+
+Specification documents used:
+- `docs/01-requirements.md`
+- `docs/04-ddd-and-domain-model.md`
+- `docs/05-architecture.md`
+- `docs/06-api-contract.md`
+- `docs/07-test-strategy.md`
+- `docs/10-adr-template-and-initial-decisions.md`
+- `docs/13-assumptions.md`
+
+AI-generated changes:
+- Created Value Objects: `Player`, `GameMode`, `GameStatus`, `CellIndex` (enforces 0..8), `GameId`, `Move`
+- Created Entity: `Board` (9 cells, empty initialization, occupied cell immutability, defensive cloning)
+- Created Aggregate Root: `Game` (protects state mutations, enforces InProgress status, player turn alternation, move history tracking)
+- Created Domain Exceptions: `DomainException`, `InvalidCellIndexException`, `CellOccupiedException`, `InvalidTurnException`, `GameAlreadyCompletedException`
+- Created Repository Abstraction: `IGameRepository`
+- Created Domain Unit Test Suites: `CellIndexTests` (18 tests), `BoardTests` (4 tests), `PlayerTests` (2 tests), `MoveTests` (3 tests), `GameTests` (6 tests)
+- Created review document `docs/ai/reviews/P004-review.md`
+
+Human changes:
+None.
+
+Tests:
+- `dotnet build backend/TicTacToe.sln`: Succeeded (0 errors, 0 warnings)
+- `dotnet test backend/TicTacToe.sln`: Passed 35 of 35 tests (33 domain unit tests + 2 smoke tests)
+- `npm test --prefix frontend -- --watch=false`: Passed 2 of 2 tests (zero regressions)
+
+Architectural decisions:
+- Maintained pure domain isolation: `TicTacToe.Domain` has zero project references and zero external package dependencies.
+- Enforced canonical `cellIndex: 0..8` as the single authoritative cell addressing contract.
+
+Review status:
+Pending human review
+
+Commit:
+PENDING_P004_COMMIT
+
+Status:
+Accepted
+
 
 
 
