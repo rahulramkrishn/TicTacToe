@@ -71,8 +71,9 @@ This document maps all Functional Requirements (FR-01 to FR-19) and Non-Function
 | **FR-12** (Reset Game) | A-002 | `Game.Reset()` (reuses `GameId`) | `ResetGame_PreservesGameId_And_ClearsState` | Unit / API Test | Baseline Planned |
 | **FR-13** (Reset Scoreboard)| ADR-007 | `Scoreboard.Reset()`, `ScoreboardController` | `ResetScoreboard_ClearsCounters_WithoutAlteringGame` | Unit / API Test | Baseline Planned |
 | **FR-14** (Computer Strategy)| ADR-005, Strategy | `IComputerMoveStrategy`, `RuleBasedComputerStrategy` | `ComputerStrategy_FollowsPriority_WinBlockCenterCorner` | Unit Test | Baseline Planned |
-| **FR-15** (REST API) | ADR-001, REST DTOs | `GamesController`, `ScoreboardController` | API Integration Tests (`WebApplicationFactory`) | Integration Test | Baseline Planned |
+| **FR-15** (REST API) | ADR-001, REST DTOs | `GamesController`, `ScoreboardController` | API Integration Tests (`WebApplicationFactory`) | Integration Test | Host Scaffolded (/health verified) |
 | **FR-16** (Backend Ownership)| ADR-001 | ASP.NET Core API Backend | End-to-End verification of state authority | E2E Test | Baseline Planned |
-| **FR-17** (Frontend UI) | Layered Arch | Angular App (`GameBoard`, `Scoreboard`, etc.) | Jasmine/Karma Component Tests | Unit / E2E Test | Baseline Planned |
-| **FR-18** (Testing) | Test Strategy | `TicTacToe.Tests`, Frontend specs | Test runner output, coverage reports | CI / Test Execution Log | Baseline Planned |
-| **FR-19** (AI Governance) | ADR-008, Governance | `docs/ai/` audit files, commit history | Audit ledger & Git log inspection | Documentation | Active in P001 |
+| **FR-17** (Frontend UI) | Layered Arch | Angular App (`GameBoard`, `Scoreboard`, etc.) | Jasmine/Karma / Vitest Component Tests | Unit / E2E Test | App Scaffolded (Build & Test OK) |
+| **FR-18** (Testing) | Test Strategy | `TicTacToe.Tests`, Frontend specs | Test runner output, coverage reports | CI / Test Execution Log | Test Harness Active (xUnit & Vitest OK) |
+| **FR-19** (AI Governance) | ADR-008, Governance | `docs/ai/` audit files, commit history | Audit ledger & Git log inspection | Documentation | Active (P001 & P002 Committed, P003 Ready) |
+

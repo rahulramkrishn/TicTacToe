@@ -10,7 +10,8 @@ This log records every AI-assisted prompt execution and code modification throug
 |---|---|---|---|---|---|
 | **AI-LOG-000** | 2026-09-05 | N/A | Bootstrap / Spec | Baseline Created | Initial repository specification documents |
 | **AI-LOG-001** | 2026-09-05 | P001 | Analysis & Discovery | Completed | Complete discovery, document inventory, traceability, and architectural analysis artifacts |
-| **AI-LOG-002** | 2026-09-05 | P002 | Baseline & Hygiene | Pending Commit | Repository hygiene, .gitignore, prompt normalization, audit structure verification |
+| **AI-LOG-002** | 2026-09-05 | P002 | Baseline & Hygiene | Completed | Repository hygiene, .gitignore, prompt normalization, audit structure verification |
+| **AI-LOG-003** | 2026-09-05 | P003 | Solution Scaffolding | Completed | .NET solution (5 projects), Angular 21 app, CORS, Health Check, smoke tests |
 
 
 ---
@@ -108,4 +109,48 @@ Commit:
 
 Status:
 Accepted
+
+---
+
+### P003 — Solution Scaffolding and Technical Baseline
+
+Date: 2026-09-05
+Prompt ID: P003
+
+Requirements:
+FR-15 (Scaffolding), FR-17 (Frontend Scaffolding), FR-18 (Test Framework), NFR-02, NFR-03, NFR-06, NFR-07, NFR-12, NFR-13
+
+Objective:
+Establish clean solution scaffolding, dependency structure, build pipeline, and test baselines for .NET and Angular without implementing business logic.
+
+AI-generated changes:
+- Created .NET solution `backend/TicTacToe.sln`
+- Created 5 projects: `TicTacToe.Domain`, `TicTacToe.Application`, `TicTacToe.Infrastructure`, `TicTacToe.Api`, `TicTacToe.Tests`
+- Configured clean unidirectional dependencies: Domain has zero external dependencies; Application depends on Domain; Infrastructure depends on Domain/Application; Api depends on Application/Infrastructure; Tests reference all projects
+- Configured restricted CORS policy in `TicTacToe.Api` for `http://localhost:4200`
+- Configured technical `/health` endpoint and ports (`5000` / `7001`)
+- Scaffolded Angular 21 frontend application (`frontend/`) with client-only architecture
+- Configured frontend environment with `apiUrl: http://localhost:5000/api`
+- Added xUnit unit test runner smoke test and `/health` integration smoke test (`Microsoft.AspNetCore.Mvc.Testing`)
+- Documented ADR-008 (`docs/ai/decisions/ADR-008-solution-scaffolding-and-toolchain.md`)
+- Produced review artifact `docs/ai/reviews/P003-review.md`
+
+Human changes:
+None.
+
+Tests:
+- `dotnet test backend/TicTacToe.sln`: Passed (2 tests)
+- `npm test -- --watch=false`: Passed (2 tests in Vitest)
+- `npm run build`: Succeeded (production bundle)
+- `dotnet build backend/TicTacToe.sln`: Succeeded (0 errors, 0 warnings)
+
+Review:
+Verified clean dependency graph, build verification, and zero business logic.
+
+Commit:
+PENDING_P003_COMMIT
+
+Status:
+Accepted
+
 
