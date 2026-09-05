@@ -70,10 +70,13 @@ public class GameTests
         Assert.Equal(Player.O, ex.AttemptedPlayer);
         Assert.Equal(Player.X, ex.ExpectedPlayer);
 
-        // Verify state did not mutate
+        // Verify all aggregate state facets remain unchanged
+        Assert.All(game.Board.Cells, cell => Assert.Null(cell));
         Assert.Empty(game.MoveHistory);
-        Assert.Null(game.Board.GetCell(new CellIndex(0)));
         Assert.Equal(Player.X, game.CurrentPlayer);
+        Assert.Equal(GameStatus.InProgress, game.Status);
+        Assert.Null(game.Winner);
+        Assert.Empty(game.WinningCells);
     }
 
     [Fact]
@@ -88,9 +91,35 @@ public class GameTests
         var ex = Assert.Throws<CellOccupiedException>(() => game.MakeMove(Player.O, cellIndex));
         Assert.Equal(4, ex.CellIndex);
 
-        // Verify state was not corrupted
-        Assert.Single(game.MoveHistory);
+        // Verify all aggregate state facets remain unchanged from post-move-1 state
         Assert.Equal(Player.X, game.Board.GetCell(cellIndex));
+        Assert.All(game.Board.Cells.Where((c, idx) => idx != 4), cell => Assert.Null(cell));
+        Assert.Single(game.MoveHistory);
         Assert.Equal(Player.O, game.CurrentPlayer);
+        Assert.Equal(GameStatus.InProgress, game.Status);
+        Assert.Null(game.Winner);
+        Assert.Empty(game.WinningCells);
+    }
+
+    [Theory]
+    [InlineData(GameStatus.Won)]
+    [InlineData(GameStatus.Draw)]
+    public void MakeMove_WhenGameAlreadyCompleted_ThrowsGameAlreadyCompletedExceptionAndPreservesState(GameStatus completedStatus)
+    {
+        // Arrange: Rehydrate game into terminal state via reflection to verify domain invariant guard
+        var game = Game.Create(GameMode.TwoPlayer);
+        typeof(Game).GetProperty(nameof(Game.Status))!.SetValue(game, completedStatus);
+
+        // Act & Assert: Player X tries to move on completed game
+        var ex = Assert.Throws<GameAlreadyCompletedException>(() => game.MakeMove(Player.X, new CellIndex(0)));
+        Assert.Equal(completedStatus, ex.CurrentStatus);
+
+        // Verify all aggregate state facets remain unchanged
+        Assert.All(game.Board.Cells, cell => Assert.Null(cell));
+        Assert.Empty(game.MoveHistory);
+        Assert.Equal(Player.X, game.CurrentPlayer);
+        Assert.Equal(completedStatus, game.Status);
+        Assert.Null(game.Winner);
+        Assert.Empty(game.WinningCells);
     }
 }
