@@ -16,10 +16,7 @@ This log records every AI-assisted prompt execution and code modification throug
 | **AI-LOG-006** | 2026-09-05 | P005 | Game Rules, Win/Draw & Invariants | Completed | WinDetector, Game.MakeMove terminal rules, 40 tests |
 | **AI-LOG-007** | 2026-09-05 | P006 / P007 | Memento Undo & Computer Strategy | Completed | GoF Memento, Option A terminal lock, GoF Strategy, BasicComputerMoveStrategy, 35 tests |
 | **AI-LOG-008** | 2026-09-05 | P008 | Domain Event & Scoreboard | Completed | GameCompletedEvent, Scoreboard Aggregate, Event Lifecycle, In-Process Dispatcher, 46 tests |
-
-
-
-
+| **AI-LOG-009** | 2026-09-05 | P009 | Application Layer & Repositories | Completed | GameService, ScoreboardService, InMemoryGameRepository, DTOs, Concurrency & Reset Event Drain, 31 tests |
 ---
 
 ## Detailed Entries
@@ -573,5 +570,62 @@ Accepted
   - Commit Hash: `34d05fb`
   - Commit Message: `feat(domain): implement game completed event, scoreboard, and reset`
 - **Documentation Closure Commit**:
-  - In progress (`docs(ai): record P008 commit hash in implementation log`)
+  - Commit Hash: `9aa2ed1`
+  - Commit Message: `docs(ai): record P008 commit hash in implementation log`
+- **Status**: Completed & Closed
+
+---
+
+### AI-LOG-009: P009 Application Layer Implementation
+- **Date**: 2026-09-05
+- **Time**: 20:30:00+05:30
+- **Developer / Assistant**: Antigravity IDE / Pair Programming Assistant
+- **AI Tool**: Google Antigravity
+- **Prompt ID**: P009 / P009.0 / P009.1 / P009.1.1 / P009.1.2
+- **Requirement IDs**: FR-01, FR-02, FR-03, FR-06, FR-07, FR-08, FR-09, FR-10, FR-11, FR-12, FR-13, FR-14, NFR-01, NFR-02, NFR-03
+- **ADRs Referenced**: ADR-001 (Monolith Architecture), ADR-002 (In-Memory Persistence), ADR-004 (Memento Pattern for Undo), ADR-005 (Strategy Pattern for Computer Moves), ADR-007 (GameCompleted Domain Event)
+- **Category**: Application Layer & Orchestration Implementation
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Awaiting Commit Authorization
+- **Tests Added / Executed**:
+  - `GameServiceTests.cs` (21 tests)
+  - `GameConcurrencyTests.cs` (4 tests)
+  - `ScoreboardServiceTests.cs` (3 tests)
+  - `InMemoryGameRepositoryTests.cs` (3 tests)
+  - Total backend tests: 191 passed, 0 failed, 0 warnings.
+  - Frontend smoke tests: 2 passed, 0 failed.
+- **Files Created**:
+  - `backend/TicTacToe.Domain/Repositories/IGameRepository.cs`
+  - `backend/TicTacToe.Infrastructure/Repositories/InMemoryGameRepository.cs`
+  - `backend/TicTacToe.Application/Exceptions/GameNotFoundException.cs`
+  - `backend/TicTacToe.Application/Models/ApplicationModels.cs`
+  - `backend/TicTacToe.Application/Mappings/DtoMappingExtensions.cs`
+  - `backend/TicTacToe.Application/Services/IGameService.cs`
+  - `backend/TicTacToe.Application/Services/GameService.cs`
+  - `backend/TicTacToe.Application/Services/IScoreboardService.cs`
+  - `backend/TicTacToe.Application/Services/ScoreboardService.cs`
+  - `backend/TicTacToe.Tests/Application/GameServiceTests.cs`
+  - `backend/TicTacToe.Tests/Application/GameConcurrencyTests.cs`
+  - `backend/TicTacToe.Tests/Application/ScoreboardServiceTests.cs`
+  - `backend/TicTacToe.Tests/Infrastructure/InMemoryGameRepositoryTests.cs`
+  - `docs/ai/reviews/P009-review.md`
+  - `docs/ai/prompts/P009.1.2-implement-application-layer.md`
+- **Files Modified**:
+  - `docs/ai/REQUIREMENT-TRACEABILITY.md`
+  - `docs/ai/ARCHITECTURE-TRACEABILITY.md`
+  - `docs/ai/IMPLEMENTATION-LOG.md`
+- **Summary**:
+  - Implemented transport-neutral `IGameService` and `GameService` orchestrating `CreateGameAsync`, `GetGameAsync`, `MakeMoveAsync`, `UndoAsync`, and `ResetGameAsync`.
+  - Implemented per-`GameId` command serialization via `ConcurrentDictionary<GameId, SemaphoreSlim>`.
+  - Reconciled event lifecycle in `GameService`: drains pending events prior to `ResetGameAsync`, dispatches events via `IDomainEventDispatcher`, and clears them on success while retaining on failure.
+  - Implemented `IScoreboardService` and `ScoreboardService` for session-level scoreboard inspection and counter reset.
+  - Placed repository contract `IGameRepository` in `TicTacToe.Domain.Repositories`, maintaining zero dependencies for Domain.
+  - Implemented thread-safe `InMemoryGameRepository` in `TicTacToe.Infrastructure` using `ConcurrentDictionary<GameId, Game>` storing live authoritative aggregates.
+  - Preserved strict architectural boundaries: zero HTTP/ASP.NET Core/UI references in Application; zero Infrastructure references in Application.
+- **Implementation Commit**:
+  - Commit Hash: `05a7acb`
+  - Commit Message: `feat(application): implement application layer orchestration`
+- **Documentation Closure Commit**:
+  - Commit Message: `docs(ai): record P009 commit hash in implementation log`
 - **Status**: Completed & Closed
