@@ -2,7 +2,6 @@ namespace TicTacToe.Tests.Api;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using TicTacToe.Application.Events;
 using TicTacToe.Application.Services;
 using TicTacToe.Domain.Repositories;
 using TicTacToe.Domain.Services;
@@ -61,14 +60,10 @@ public class DiLifetimeTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public void InfrastructureAndDomainServices_AreRegisteredAsSingletons()
+    public void DomainServices_AreRegisteredAsSingletons()
     {
         using var scope1 = _factory.Services.CreateScope();
         using var scope2 = _factory.Services.CreateScope();
-
-        var dispatcher1 = scope1.ServiceProvider.GetRequiredService<IDomainEventDispatcher>();
-        var dispatcher2 = scope2.ServiceProvider.GetRequiredService<IDomainEventDispatcher>();
-        Assert.Same(dispatcher1, dispatcher2);
 
         var strategy1 = scope1.ServiceProvider.GetRequiredService<IComputerMoveStrategy>();
         var strategy2 = scope2.ServiceProvider.GetRequiredService<IComputerMoveStrategy>();

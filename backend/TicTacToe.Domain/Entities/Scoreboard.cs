@@ -1,19 +1,15 @@
 namespace TicTacToe.Domain.Entities;
 
 using System;
-using System.Collections.Generic;
-using TicTacToe.Domain.Events;
 using TicTacToe.Domain.ValueObjects;
 
 /// <summary>
 /// Scoreboard aggregate root tracking session-level game outcomes (X wins, O wins, Draws).
-/// Thread-safe via internal synchronization.
-/// Guarantees at-most-once mutation per unique EventId.
+/// Thread-safe via internal synchronization (_syncLock) across parallel game completions.
 /// </summary>
 public sealed class Scoreboard
 {
     private readonly object _syncLock = new();
-    private readonly HashSet<Guid> _processedEventIds = new();
 
     public int XWins { get; private set; }
     public int OWins { get; private set; }
@@ -42,48 +38,39 @@ public sealed class Scoreboard
     }
 
     /// <summary>
-    /// Atomically records a completed game event if it has not been previously processed.
+    /// Atomically increments the win counter for the winning player.
     /// Thread-safe via internal synchronization.
     /// </summary>
-    /// <param name="gameCompletedEvent">The completed game domain event.</param>
-    /// <returns>True if the event was processed and counters incremented; false if it was already processed.</returns>
-    public bool RecordGameCompleted(GameCompletedEvent gameCompletedEvent)
+    /// <param name="winner">The player who won (X or O).</param>
+    public void RecordWin(Player winner)
     {
-        if (gameCompletedEvent == null)
-        {
-            throw new ArgumentNullException(nameof(gameCompletedEvent));
-        }
-
         lock (_syncLock)
         {
-            // Idempotency check: ignore if this exact event was already processed
-            if (!_processedEventIds.Add(gameCompletedEvent.EventId))
+            if (winner == Player.X)
             {
-                return false;
+                XWins++;
             }
-
-            if (gameCompletedEvent.Result == GameStatus.Won)
+            else if (winner == Player.O)
             {
-                if (gameCompletedEvent.Winner == Player.X)
-                {
-                    XWins++;
-                }
-                else if (gameCompletedEvent.Winner == Player.O)
-                {
-                    OWins++;
-                }
+                OWins++;
             }
-            else if (gameCompletedEvent.Result == GameStatus.Draw)
-            {
-                Draws++;
-            }
-
-            return true;
         }
     }
 
     /// <summary>
-    /// Resets score counters to 0 while preserving processed event history to guarantee idempotency.
+    /// Atomically increments the draw counter.
+    /// Thread-safe via internal synchronization.
+    /// </summary>
+    public void RecordDraw()
+    {
+        lock (_syncLock)
+        {
+            Draws++;
+        }
+    }
+
+    /// <summary>
+    /// Resets score counters to 0.
     /// Thread-safe via internal synchronization.
     /// </summary>
     public void Reset()
@@ -93,7 +80,6 @@ public sealed class Scoreboard
             XWins = 0;
             OWins = 0;
             Draws = 0;
-            // NOTE: _processedEventIds is preserved to prevent double-counting redelivered historical events.
         }
     }
 }

@@ -275,7 +275,7 @@ public class GamesApiTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task ResetGame_WhenTerminalMoveCompleted_DispatchesEventAndUpdatesScoreboardBeforeReset()
+    public async Task ResetGame_WhenTerminalMoveCompleted_PreservesScoreboardWinAfterReset()
     {
         var initScoreResp = await _client.GetAsync("/api/scoreboard");
         var initScore = await initScoreResp.Content.ReadFromJsonAsync<ScoreboardDto>(_jsonOptions);

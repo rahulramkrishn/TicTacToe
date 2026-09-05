@@ -3,7 +3,6 @@ namespace TicTacToe.Tests.Application;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TicTacToe.Application.Events;
 using TicTacToe.Application.Models;
 using TicTacToe.Application.Services;
 using TicTacToe.Domain.Services;
@@ -15,7 +14,6 @@ public class GameConcurrencyTests
 {
     private readonly InMemoryGameRepository _gameRepository;
     private readonly InMemoryScoreboardRepository _scoreboardRepository;
-    private readonly DomainEventDispatcher _eventDispatcher;
     private readonly IComputerMoveStrategy _computerStrategy;
     private readonly GameService _gameService;
 
@@ -23,13 +21,11 @@ public class GameConcurrencyTests
     {
         _gameRepository = new InMemoryGameRepository();
         _scoreboardRepository = new InMemoryScoreboardRepository();
-        _eventDispatcher = new DomainEventDispatcher();
         _computerStrategy = new BasicComputerMoveStrategy();
 
         _gameService = new GameService(
             _gameRepository,
             _scoreboardRepository,
-            _eventDispatcher,
             _computerStrategy);
     }
 

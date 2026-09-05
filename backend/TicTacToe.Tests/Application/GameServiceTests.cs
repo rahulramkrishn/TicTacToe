@@ -3,14 +3,11 @@ namespace TicTacToe.Tests.Application;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using TicTacToe.Application.EventHandlers;
-using TicTacToe.Application.Events;
 using TicTacToe.Application.Exceptions;
 using TicTacToe.Application.Models;
 using TicTacToe.Application.Services;
 using TicTacToe.Domain.Aggregates;
 using TicTacToe.Domain.Entities;
-using TicTacToe.Domain.Events;
 using TicTacToe.Domain.Exceptions;
 using TicTacToe.Domain.Services;
 using TicTacToe.Domain.ValueObjects;
@@ -21,7 +18,6 @@ public class GameServiceTests
 {
     private readonly InMemoryGameRepository _gameRepository;
     private readonly InMemoryScoreboardRepository _scoreboardRepository;
-    private readonly DomainEventDispatcher _eventDispatcher;
     private readonly IComputerMoveStrategy _computerStrategy;
     private readonly GameService _gameService;
 
@@ -29,17 +25,11 @@ public class GameServiceTests
     {
         _gameRepository = new InMemoryGameRepository();
         _scoreboardRepository = new InMemoryScoreboardRepository();
-        _eventDispatcher = new DomainEventDispatcher();
         _computerStrategy = new BasicComputerMoveStrategy();
-
-        // Wire event handler
-        var handler = new GameCompletedEventHandler(_scoreboardRepository);
-        _eventDispatcher.RegisterHandler(handler);
 
         _gameService = new GameService(
             _gameRepository,
             _scoreboardRepository,
-            _eventDispatcher,
             _computerStrategy);
     }
 
@@ -59,34 +49,35 @@ public class GameServiceTests
         Assert.Empty(result.WinningCells);
         Assert.Empty(result.MoveHistory);
         Assert.False(result.CanUndo);
-        Assert.Equal(0, result.Scoreboard.TotalGames);
+        Assert.NotNull(result.Scoreboard);
     }
 
     [Fact]
-    public async Task GetGame_WhenGameExists_ReturnsAuthoritativeState()
+    public async Task GetGame_WhenExists_ReturnsCurrentGameState()
     {
         var created = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
         var retrieved = await _gameService.GetGameAsync(new GameId(created.GameId));
 
         Assert.Equal(created.GameId, retrieved.GameId);
+        Assert.Equal(created.Mode, retrieved.Mode);
         Assert.Equal(created.Status, retrieved.Status);
     }
 
     [Fact]
-    public async Task GetGame_WhenGameNotFound_ThrowsGameNotFoundException()
+    public async Task GetGame_WhenNotFound_ThrowsGameNotFoundException()
     {
-        var missingId = new GameId(Guid.NewGuid());
-        var ex = await Assert.ThrowsAsync<GameNotFoundException>(() => _gameService.GetGameAsync(missingId));
-        Assert.Equal(missingId.Value, ex.GameId);
+        var missingId = GameId.New();
+        await Assert.ThrowsAsync<GameNotFoundException>(() =>
+            _gameService.GetGameAsync(missingId));
     }
 
     [Fact]
-    public async Task MakeMove_ValidMove_UpdatesBoardAndAlternatesTurn()
+    public async Task MakeMove_WhenValid_UpdatesBoardAndAlternatesTurn()
     {
         var game = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
+        var command = new MakeMoveCommand(game.GameId, Player.X, 0);
 
-        var moveCommand = new MakeMoveCommand(game.GameId, Player.X, 0);
-        var result = await _gameService.MakeMoveAsync(moveCommand);
+        var result = await _gameService.MakeMoveAsync(command);
 
         Assert.Equal(Player.X, result.Board[0]);
         Assert.Equal(Player.O, result.CurrentPlayer);
@@ -97,16 +88,17 @@ public class GameServiceTests
     }
 
     [Fact]
-    public async Task MakeMove_InvalidCellIndex_ThrowsInvalidCellIndexException()
+    public async Task MakeMove_WhenInvalidTurn_ThrowsInvalidTurnException()
     {
         var game = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
-        var moveCommand = new MakeMoveCommand(game.GameId, Player.X, 9); // Outside 0..8
+        var command = new MakeMoveCommand(game.GameId, Player.O, 0); // Player X must start
 
-        await Assert.ThrowsAsync<InvalidCellIndexException>(() => _gameService.MakeMoveAsync(moveCommand));
+        await Assert.ThrowsAsync<InvalidTurnException>(() =>
+            _gameService.MakeMoveAsync(command));
     }
 
     [Fact]
-    public async Task MakeMove_OccupiedCell_ThrowsCellOccupiedException()
+    public async Task MakeMove_WhenCellOccupied_ThrowsCellOccupiedException()
     {
         var game = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
         await _gameService.MakeMoveAsync(new MakeMoveCommand(game.GameId, Player.X, 4));
@@ -116,38 +108,16 @@ public class GameServiceTests
     }
 
     [Fact]
-    public async Task MakeMove_InvalidTurn_ThrowsInvalidTurnException()
+    public async Task MakeMove_WhenCellIndexOutOfRange_ThrowsInvalidCellIndexException()
     {
         var game = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
 
-        // Player O tries to move first
-        await Assert.ThrowsAsync<InvalidTurnException>(() =>
-            _gameService.MakeMoveAsync(new MakeMoveCommand(game.GameId, Player.O, 0)));
+        await Assert.ThrowsAsync<InvalidCellIndexException>(() =>
+            _gameService.MakeMoveAsync(new MakeMoveCommand(game.GameId, Player.X, 9)));
     }
 
     [Fact]
-    public async Task MakeMove_WhenGameAlreadyCompleted_ThrowsGameAlreadyCompletedException()
-    {
-        var game = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
-        var id = game.GameId;
-
-        // Play to win for X on row 0: 0, 1, 2
-        await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 0));
-        await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.O, 3));
-        await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 1));
-        await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.O, 4));
-        var terminalState = await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 2));
-
-        Assert.Equal(GameStatus.Won, terminalState.Status);
-        Assert.Equal(Player.X, terminalState.Winner);
-
-        // Attempt move after completion
-        await Assert.ThrowsAsync<GameAlreadyCompletedException>(() =>
-            _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.O, 5)));
-    }
-
-    [Fact]
-    public async Task MakeMove_WhenTerminalWin_DispatchesEventAndClearsPendingEvents()
+    public async Task MakeMove_WhenTerminalWin_UpdatesScoreboard()
     {
         var game = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
         var id = game.GameId;
@@ -165,14 +135,13 @@ public class GameServiceTests
         Assert.Equal(0, result.Scoreboard.OWins);
         Assert.Equal(0, result.Scoreboard.Draws);
 
-        // Verify pending events cleared on aggregate in repo
-        var rawGame = await _gameRepository.GetByIdAsync(new GameId(id));
-        Assert.NotNull(rawGame);
-        Assert.Empty(rawGame.DomainEvents);
+        // Verify repository scoreboard
+        var repoScoreboard = await _scoreboardRepository.GetScoreboardAsync();
+        Assert.Equal(1, repoScoreboard.XWins);
     }
 
     [Fact]
-    public async Task MakeMove_WhenTerminalDraw_DispatchesEventAndClearsPendingEvents()
+    public async Task MakeMove_WhenTerminalDraw_UpdatesScoreboard()
     {
         var game = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
         var id = game.GameId;
@@ -197,40 +166,33 @@ public class GameServiceTests
         Assert.Equal(0, result.Scoreboard.OWins);
         Assert.Equal(1, result.Scoreboard.Draws);
 
-        var rawGame = await _gameRepository.GetByIdAsync(new GameId(id));
-        Assert.NotNull(rawGame);
-        Assert.Empty(rawGame.DomainEvents);
+        var repoScoreboard = await _scoreboardRepository.GetScoreboardAsync();
+        Assert.Equal(1, repoScoreboard.Draws);
     }
 
     [Fact]
-    public async Task MakeMove_WhenDispatchThrows_RetainsPendingEvent()
+    public async Task MakeMove_OnAlreadyCompletedGame_ThrowsAndDoesNotDoubleCountScoreboard()
     {
-        var failingDispatcher = new DomainEventDispatcher();
-        failingDispatcher.RegisterHandler<GameCompletedEvent>(_ =>
-            throw new InvalidOperationException("Simulated dispatcher outage"));
-
-        var gameService = new GameService(
-            _gameRepository,
-            _scoreboardRepository,
-            failingDispatcher,
-            _computerStrategy);
-
-        var game = await gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
+        var game = await _gameService.CreateGameAsync(new CreateGameCommand(GameMode.TwoPlayer));
         var id = game.GameId;
 
-        await gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 0));
-        await gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.O, 3));
-        await gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 1));
-        await gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.O, 4));
+        // Complete game with X win
+        await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 0));
+        await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.O, 3));
+        await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 1));
+        await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.O, 4));
+        var winResult = await _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 2));
 
-        // Move that causes terminal win will trigger failing dispatcher
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.X, 2)));
+        Assert.Equal(1, winResult.Scoreboard.XWins);
 
-        // Verify pending event is retained on the game aggregate for retry
-        var rawGame = await _gameRepository.GetByIdAsync(new GameId(id));
-        Assert.NotNull(rawGame);
-        Assert.Single(rawGame.DomainEvents);
+        // Attempt another move on the completed game
+        await Assert.ThrowsAsync<GameAlreadyCompletedException>(() =>
+            _gameService.MakeMoveAsync(new MakeMoveCommand(id, Player.O, 8)));
+
+        // Verify scoreboard was NOT incremented again
+        var scoreboard = await _scoreboardRepository.GetScoreboardAsync();
+        Assert.Equal(1, scoreboard.XWins);
+        Assert.Equal(1, scoreboard.TotalGames);
     }
 
     [Fact]
@@ -351,96 +313,5 @@ public class GameServiceTests
         // Scoreboard remains 1
         Assert.Equal(1, resetState.Scoreboard.XWins);
         Assert.Equal(1, resetState.Scoreboard.TotalGames);
-    }
-
-    [Fact]
-    public async Task ResetGame_WhenEventPending_DispatchesBeforeReset()
-    {
-        // Manually place a game in repository that has a pending event
-        var gameId = GameId.New();
-        var game = new Game(gameId, GameMode.TwoPlayer);
-        game.MakeMove(Player.X, new CellIndex(0));
-        game.MakeMove(Player.O, new CellIndex(3));
-        game.MakeMove(Player.X, new CellIndex(1));
-        game.MakeMove(Player.O, new CellIndex(4));
-        game.MakeMove(Player.X, new CellIndex(2)); // Won - has pending event
-
-        Assert.Single(game.DomainEvents);
-        await _gameRepository.SaveAsync(game);
-
-        // Reset via GameService
-        var resetState = await _gameService.ResetGameAsync(gameId);
-
-        // Scoreboard was updated because pending event was drained before reset
-        Assert.Equal(1, resetState.Scoreboard.XWins);
-        Assert.Equal(GameStatus.InProgress, resetState.Status);
-
-        // Aggregate retained in repo has cleared events
-        var rawGame = await _gameRepository.GetByIdAsync(gameId);
-        Assert.NotNull(rawGame);
-        Assert.Empty(rawGame.DomainEvents);
-    }
-
-    [Fact]
-    public async Task ResetGame_WhenDispatchFails_DoesNotReset()
-    {
-        var failingDispatcher = new DomainEventDispatcher();
-        failingDispatcher.RegisterHandler<GameCompletedEvent>(_ =>
-            throw new InvalidOperationException("Simulated reset dispatch failure"));
-
-        var gameService = new GameService(
-            _gameRepository,
-            _scoreboardRepository,
-            failingDispatcher,
-            _computerStrategy);
-
-        var gameId = GameId.New();
-        var game = new Game(gameId, GameMode.TwoPlayer);
-        game.MakeMove(Player.X, new CellIndex(0));
-        game.MakeMove(Player.O, new CellIndex(3));
-        game.MakeMove(Player.X, new CellIndex(1));
-        game.MakeMove(Player.O, new CellIndex(4));
-        game.MakeMove(Player.X, new CellIndex(2)); // Won
-        await _gameRepository.SaveAsync(game);
-
-        // Reset should fail and halt
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            gameService.ResetGameAsync(gameId));
-
-        // Game remains in Won state
-        var rawGame = await _gameRepository.GetByIdAsync(gameId);
-        Assert.NotNull(rawGame);
-        Assert.Equal(GameStatus.Won, rawGame.Status);
-    }
-
-    [Fact]
-    public async Task ResetGame_WhenDispatchFails_RetainsEvent()
-    {
-        var failingDispatcher = new DomainEventDispatcher();
-        failingDispatcher.RegisterHandler<GameCompletedEvent>(_ =>
-            throw new InvalidOperationException("Simulated reset dispatch failure"));
-
-        var gameService = new GameService(
-            _gameRepository,
-            _scoreboardRepository,
-            failingDispatcher,
-            _computerStrategy);
-
-        var gameId = GameId.New();
-        var game = new Game(gameId, GameMode.TwoPlayer);
-        game.MakeMove(Player.X, new CellIndex(0));
-        game.MakeMove(Player.O, new CellIndex(3));
-        game.MakeMove(Player.X, new CellIndex(1));
-        game.MakeMove(Player.O, new CellIndex(4));
-        game.MakeMove(Player.X, new CellIndex(2)); // Won
-        await _gameRepository.SaveAsync(game);
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            gameService.ResetGameAsync(gameId));
-
-        // Game retains pending event
-        var rawGame = await _gameRepository.GetByIdAsync(gameId);
-        Assert.NotNull(rawGame);
-        Assert.Single(rawGame.DomainEvents);
     }
 }

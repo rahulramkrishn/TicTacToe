@@ -6,8 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TicTacToe.Api.Middleware;
-using TicTacToe.Application.EventHandlers;
-using TicTacToe.Application.Events;
 using TicTacToe.Application.Services;
 using TicTacToe.Domain.Repositories;
 using TicTacToe.Domain.Services;
@@ -73,15 +71,6 @@ builder.Services.AddSingleton<IScoreboardRepository, InMemoryScoreboardRepositor
 
 // Pure Domain Services & Strategies
 builder.Services.AddSingleton<IComputerMoveStrategy, BasicComputerMoveStrategy>();
-
-// Domain Event Infrastructure
-builder.Services.AddSingleton<IDomainEventDispatcher>(sp =>
-{
-    var dispatcher = new DomainEventDispatcher();
-    var scoreboardRepo = sp.GetRequiredService<IScoreboardRepository>();
-    dispatcher.RegisterHandler(new GameCompletedEventHandler(scoreboardRepo));
-    return dispatcher;
-});
 
 // Application Services
 // CRITICAL: Registered as Singleton so the internal ConcurrentDictionary<GameId, SemaphoreSlim>

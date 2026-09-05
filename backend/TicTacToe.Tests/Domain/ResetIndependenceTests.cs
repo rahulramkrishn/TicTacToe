@@ -3,7 +3,6 @@ namespace TicTacToe.Tests.Domain;
 using System;
 using TicTacToe.Domain.Aggregates;
 using TicTacToe.Domain.Entities;
-using TicTacToe.Domain.Events;
 using TicTacToe.Domain.ValueObjects;
 using Xunit;
 
@@ -22,8 +21,7 @@ public class ResetIndependenceTests
         game.MakeMove(Player.O, new CellIndex(4));
         game.MakeMove(Player.X, new CellIndex(2));
 
-        var evt = (GameCompletedEvent)game.DomainEvents.GetEnumerator().Current ?? (GameCompletedEvent)System.Linq.Enumerable.First(game.DomainEvents);
-        scoreboard.RecordGameCompleted(evt);
+        scoreboard.RecordWin(game.Winner!.Value);
 
         Assert.Equal(1, scoreboard.XWins);
 
@@ -48,8 +46,7 @@ public class ResetIndependenceTests
         game.MakeMove(Player.O, new CellIndex(4));
         game.MakeMove(Player.X, new CellIndex(2)); // Won
 
-        var evt = (GameCompletedEvent)System.Linq.Enumerable.First(game.DomainEvents);
-        scoreboard.RecordGameCompleted(evt);
+        scoreboard.RecordWin(game.Winner!.Value);
         Assert.Equal(1, scoreboard.XWins);
 
         // Reset Scoreboard only
@@ -75,14 +72,5 @@ public class ResetIndependenceTests
         game.Reset();
 
         Assert.Equal(originalId, game.Id);
-    }
-
-    [Fact]
-    public void GameReset_DoesNotEmitDomainEvents()
-    {
-        var game = Game.Create(GameMode.TwoPlayer);
-        game.Reset();
-
-        Assert.Empty(game.DomainEvents);
     }
 }

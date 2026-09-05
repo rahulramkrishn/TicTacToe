@@ -1,7 +1,6 @@
 namespace TicTacToe.Domain.Aggregates;
 
 using TicTacToe.Domain.Entities;
-using TicTacToe.Domain.Events;
 using TicTacToe.Domain.Exceptions;
 using TicTacToe.Domain.Mementos;
 using TicTacToe.Domain.Services;
@@ -16,7 +15,6 @@ public sealed class Game
 {
     private readonly List<Move> _moveHistory;
     private readonly Stack<GameMemento> _undoStack;
-    private readonly List<IDomainEvent> _domainEvents;
 
     public GameId Id { get; }
     public GameMode Mode { get; }
@@ -27,7 +25,6 @@ public sealed class Game
     public Board Board { get; private set; }
 
     public IReadOnlyList<Move> MoveHistory => _moveHistory.AsReadOnly();
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
     /// <summary>
     /// Indicates whether an Undo operation can be performed.
@@ -46,17 +43,10 @@ public sealed class Game
         Board = new Board();
         _moveHistory = new List<Move>();
         _undoStack = new Stack<GameMemento>();
-        _domainEvents = new List<IDomainEvent>();
     }
 
     /// <summary>
-    /// Clears all pending domain events after successful dispatch by the application layer.
-    /// </summary>
-    public void ClearDomainEvents() => _domainEvents.Clear();
-
-    /// <summary>
     /// Resets the game play state for a new round while preserving the GameId (FR-12).
-    /// Invariant (P008.2): MUST NOT clear DomainEvents. Pending events are retained until successfully dispatched and cleared by the application layer.
     /// </summary>
     public void Reset()
     {
@@ -67,7 +57,6 @@ public sealed class Game
         WinningCells = Array.Empty<int>();
         _moveHistory.Clear();
         _undoStack.Clear();
-        // NOTE: _domainEvents is intentionally NOT cleared here per P008.2 event lifecycle specification.
     }
 
     /// <summary>
@@ -85,8 +74,8 @@ public sealed class Game
     /// 4. Memento snapshot is captured and pushed to the undo stack before mutation.
     /// 5. Move is placed on the board and appended to history.
     /// 6. Win detection is evaluated first against the 8 canonical lines.
-    /// 7. If won: status transitions to Won, Winner and WinningCells are recorded, GameCompletedEvent is emitted, and turn progression halts.
-    /// 8. If not won and board is full: status transitions to Draw, GameCompletedEvent is emitted, and turn progression halts.
+    /// 7. If won: status transitions to Won, Winner and WinningCells are recorded, and turn progression halts.
+    /// 8. If not won and board is full: status transitions to Draw, and turn progression halts.
     /// 9. If non-terminal: turn alternates to the other player.
     /// </summary>
     public void MakeMove(Player player, CellIndex cellIndex)
@@ -123,30 +112,12 @@ public sealed class Game
             Status = GameStatus.Won;
             Winner = winResult.Winner;
             WinningCells = winResult.WinningCells;
-
-            _domainEvents.Add(new GameCompletedEvent(
-                Guid.NewGuid(),
-                Id,
-                GameStatus.Won,
-                Winner,
-                WinningCells,
-                _moveHistory.Count,
-                DateTimeOffset.UtcNow));
             return;
         }
 
         if (Board.IsFull)
         {
             Status = GameStatus.Draw;
-
-            _domainEvents.Add(new GameCompletedEvent(
-                Guid.NewGuid(),
-                Id,
-                GameStatus.Draw,
-                null,
-                Array.Empty<int>(),
-                _moveHistory.Count,
-                DateTimeOffset.UtcNow));
             return;
         }
 

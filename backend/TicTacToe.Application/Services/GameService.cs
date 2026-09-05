@@ -2,10 +2,8 @@ namespace TicTacToe.Application.Services;
 
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using TicTacToe.Application.Events;
 using TicTacToe.Application.Exceptions;
 using TicTacToe.Application.Mappings;
 using TicTacToe.Application.Models;
@@ -15,7 +13,7 @@ using TicTacToe.Domain.Services;
 using TicTacToe.Domain.ValueObjects;
 
 /// <summary>
-/// Orchestrates Game aggregate use cases, domain event dispatching, and persistence.
+/// Orchestrates Game aggregate use cases, synchronous scoreboard consequences, and persistence.
 /// Enforces per-GameId synchronization to serialize concurrent commands targeting the same game.
 /// Delegates all domain business rules to the Domain layer.
 /// <para>
@@ -25,30 +23,25 @@ using TicTacToe.Domain.ValueObjects;
 /// assessment architecture and will be revisited if persistent storage is introduced.
 /// </para>
 /// <para>
-/// Architectural Note (Transaction Boundary &amp; Failure Semantics): For the current single-process
-/// in-memory architecture, aggregate mutation, event dispatch, event clearing, and repository persistence
-/// are treated as one application-level operation. ClearDomainEvents() occurs only after successful event
-/// dispatch, and persistence failure must not be silently swallowed. The design does not claim distributed
-/// transactional guarantees.
+/// Architectural Note (Persistence Boundary &amp; Failure Semantics): P012 does not introduce distributed
+/// transaction guarantees. Game and scoreboard persistence are performed synchronously within the Application
+/// service and are assumed to share the same process/storage consistency boundary.
 /// </para>
 /// </summary>
 public sealed class GameService : IGameService
 {
     private readonly IGameRepository _gameRepository;
     private readonly IScoreboardRepository _scoreboardRepository;
-    private readonly IDomainEventDispatcher _eventDispatcher;
     private readonly IComputerMoveStrategy _computerStrategy;
     private readonly ConcurrentDictionary<GameId, SemaphoreSlim> _gameLocks = new();
 
     public GameService(
         IGameRepository gameRepository,
         IScoreboardRepository scoreboardRepository,
-        IDomainEventDispatcher eventDispatcher,
         IComputerMoveStrategy computerStrategy)
     {
         _gameRepository = gameRepository ?? throw new ArgumentNullException(nameof(gameRepository));
         _scoreboardRepository = scoreboardRepository ?? throw new ArgumentNullException(nameof(scoreboardRepository));
-        _eventDispatcher = eventDispatcher ?? throw new ArgumentNullException(nameof(eventDispatcher));
         _computerStrategy = computerStrategy ?? throw new ArgumentNullException(nameof(computerStrategy));
     }
 
@@ -101,6 +94,8 @@ public sealed class GameService : IGameService
                 throw new GameNotFoundException(gameId.Value);
             }
 
+            var previousStatus = game.Status;
+
             if (game.Mode == GameMode.TwoPlayer)
             {
                 game.MakeMove(command.Player, cellIndex);
@@ -111,18 +106,24 @@ public sealed class GameService : IGameService
                 game.ExecuteTurn(cellIndex, _computerStrategy);
             }
 
-            // Domain Event Lifecycle: Dispatch pending events and clear strictly upon success
-            if (game.DomainEvents.Count > 0)
+            // Explicit Terminal Transition Detection (One transition = One scoreboard update)
+            if (previousStatus == GameStatus.InProgress && game.Status == GameStatus.Won && game.Winner.HasValue)
             {
-                var events = game.DomainEvents.ToList();
-                await _eventDispatcher.DispatchAsync(events).ConfigureAwait(false);
-                game.ClearDomainEvents();
+                var scoreboard = await _scoreboardRepository.GetScoreboardAsync().ConfigureAwait(false);
+                scoreboard.RecordWin(game.Winner.Value);
+                await _scoreboardRepository.SaveScoreboardAsync(scoreboard).ConfigureAwait(false);
+            }
+            else if (previousStatus == GameStatus.InProgress && game.Status == GameStatus.Draw)
+            {
+                var scoreboard = await _scoreboardRepository.GetScoreboardAsync().ConfigureAwait(false);
+                scoreboard.RecordDraw();
+                await _scoreboardRepository.SaveScoreboardAsync(scoreboard).ConfigureAwait(false);
             }
 
             await _gameRepository.SaveAsync(game, cancellationToken).ConfigureAwait(false);
 
-            var scoreboard = await _scoreboardRepository.GetScoreboardAsync().ConfigureAwait(false);
-            return game.ToDto(scoreboard);
+            var currentScoreboard = await _scoreboardRepository.GetScoreboardAsync().ConfigureAwait(false);
+            return game.ToDto(currentScoreboard);
         }
         finally
         {
@@ -166,15 +167,6 @@ public sealed class GameService : IGameService
             if (game == null)
             {
                 throw new GameNotFoundException(gameId.Value);
-            }
-
-            // Invariant (P009.1.1): Drain pending events before resetting so completion facts are never lost.
-            // If dispatch throws, reset halts and ClearDomainEvents is NOT called.
-            if (game.DomainEvents.Count > 0)
-            {
-                var events = game.DomainEvents.ToList();
-                await _eventDispatcher.DispatchAsync(events).ConfigureAwait(false);
-                game.ClearDomainEvents();
             }
 
             game.Reset();
