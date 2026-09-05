@@ -823,3 +823,40 @@ Accepted
 - **Documentation Closure Commit**:
   - Commit Message: `docs(ai): record P011 commit hash in implementation log`
 - **Status**: Completed & Closed
+
+---
+
+### P011.5 — E2E Product Smoke Test and UX/Layout Hardening
+
+- **Date**: 2026-09-05
+- **Prompt ID**: P011.5
+- **Requirement IDs**: FR-01 through FR-19, NFR-09 (Usability), NFR-10 (Accessibility), NFR-11 (Responsive UI)
+- **Category**: UX Quality, Defect Resolution, End-to-End Verification
+- **AI Generated**: Yes
+- **Human Modified**: None
+- **Human Reviewed**: Reviewed & Approved
+- **Tests Added / Executed**:
+  - Full automated E2E browser smoke test covering 12 interactive scenarios.
+  - Backend test suite: 233 passed, 0 failed.
+  - Frontend test suite: 43 passed, 0 failed.
+  - Production build: Succeeded (0 errors).
+- **Files Modified**:
+  - `frontend/package.json` (added `--host 0.0.0.0` to ensure dual-stack IPv4/IPv6 loopback reachability on Windows)
+  - `frontend/src/app/app.css` (enforced 100% width on column child components)
+  - `frontend/src/app/components/game-board/game-board.css` (enforced `:host { display: block; width: 100%; }`, min-height 360px on grid, min-height 95px on cells)
+  - `frontend/src/app/components/game-controls/game-controls.css` (added `:host` block)
+  - `frontend/src/app/components/move-history/move-history.css` (added `:host` block)
+  - `frontend/src/app/components/scoreboard/scoreboard.css` (added `:host` block, adjusted card padding and gap to prevent sidebar overflow)
+  - `frontend/src/app/components/status-banner/status-banner.css` (added `:host` block)
+- **Files Created**:
+  - `docs/ai/reviews/P011.5-review.md`
+- **Summary**:
+  - Resolved IPv4 loopback `127.0.0.1:4200` connection failure by binding Angular dev server to `0.0.0.0`.
+  - Resolved game board collapsing to a miniature 60px box inside flexbox column by setting `:host` display/width rules and establishing min-height on grid and cells.
+  - Resolved scoreboard card overflow on the 340px sidebar panel.
+- **Implementation Commit**:
+  - Commit Hash: `6aeff72`
+  - Commit Message: `fix(ui): resolve game board sizing, IPv4 binding, and scoreboard card overflow`
+- **Documentation Closure Commit**:
+  - Commit Message: `docs(ai): record P011.5 commit hash in implementation log`
+- **Status**: Completed & Closed
