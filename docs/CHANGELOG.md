@@ -1,7 +1,14 @@
-# Engineering Changelog
+# Changelog
 
-Record meaningful implementation and documentation changes, regardless of whether AI or human authored them.
+## 1.0
+- Implemented Tic-Tac-Toe game
+- Added two-player mode
+- Added computer mode
+- Added undo
+- Added scoreboard
+- Added REST API
+- Added Angular UI
 
-## Unreleased
-
-- Documentation and engineering specification baseline created.
+## Architecture
+- Simplified in-process domain event infrastructure
+- Application service now synchronously orchestrates scoreboard updates

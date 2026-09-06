@@ -151,78 +151,7 @@ A `WinDetector`/`BoardEvaluator` domain service may evaluate:
 
 Keep the rule deterministic and pure.
 
-## 9. Domain Event — Firm Decision
-
-### `GameCompleted`
-
-This is **not optional**.
-
-The aggregate raises:
-
-```text
-GameCompleted
-```
-
-when it makes the first transition:
-
-```text
-InProgress → Won
-```
-
-or:
-
-```text
-InProgress → Draw
-```
-
-Payload:
-
-```text
-GameId
-Result
-Winner (nullable)
-```
-
-The application layer handles the event and updates the session scoreboard.
-
-## 10. Exactly-Once Completion
-
-The aggregate must prevent:
-
-```text
-completed game
-    ↓
-another completion event
-    ↓
-second scoreboard increment
-```
-
-The event can only be created during the state transition that first completes the game.
-
-GET, reset, UI refresh and repeated reads must never generate it.
-
-## 11. Event Handling
-
-For this assessment:
-
-```text
-Game aggregate
-   |
-   | raises GameCompleted
-   v
-In-process event dispatcher
-   |
-   v
-Scoreboard handler
-```
-
-No RabbitMQ, Kafka, SNS/SQS or Service Bus is required.
-
-### Production evolution
-
-If state becomes durable/distributed, use an outbox or equivalent transactional event publication mechanism so completion cannot be lost between persistence and event publication.
-
-## 12. Reset Semantics
+## 9. Reset Semantics
 
 Reset Game:
 
@@ -233,37 +162,37 @@ Reset Game:
 
 The aggregate is reset to a fresh logical game state under the same identity.
 
-## 13. Scoreboard Boundary
+## 10. Scoreboard Boundary
 
 The scoreboard is session-level state rather than part of the Game aggregate.
 
 This avoids coupling game lifecycle state to a global/session counter.
 
-The `GameCompleted` event is the integration point.
+The `GameService` orchestrates the integration point synchronously when a game completes.
 
-## 14. Suggested Application Flow
+## 11. Suggested Application Flow
 
 ```text
 Controller
    ↓
-Application Command
+Application Command (GameService)
    ↓
 Game Repository
    ↓
 Game Aggregate
    ↓
-Domain Rules
+Domain Rules (Win/Draw Evaluation)
    ↓
-Domain Event: GameCompleted
+Scoreboard Update (if terminal)
    ↓
-Scoreboard Handler
+Scoreboard Repository
    ↓
 DTO Mapper
    ↓
 HTTP Response
 ```
 
-## 15. Principal-Level Discussion
+## 12. Principal-Level Discussion
 
 Why DDD here?
 
@@ -274,7 +203,6 @@ The architecture demonstrates:
 - separation of domain rules
 - aggregate ownership
 - explicit commands
-- domain events
 - replaceable strategy
 - snapshot-based undo
 - testable business logic

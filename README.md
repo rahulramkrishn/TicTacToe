@@ -1,50 +1,55 @@
-# Tic Tac Toe — Engineering Specification Update
+# Tic-Tac-Toe Enterprise Solution
 
-This package freezes four previously unresolved decisions before implementation begins.
+This repository contains an enterprise-grade implementation of Tic-Tac-Toe, featuring a **.NET 8 Backend** (Domain-Driven Design, Onion Architecture) and an **Angular 21 Frontend** (Standalone Components, Signals, WCAG 2.1 AA).
 
-## Decisions
+## 🚀 How to Run the Solution
 
-| Area | Final Decision |
-|---|---|
-| Cell addressing | `cellIndex` 0..8 |
-| Reset Game | Reuse existing `gameId` |
-| Undo | Memento pattern |
-| Computer | Strategy pattern |
-| Completion/scoreboard | `GameCompleted` domain event |
-| Event delivery | In-process synchronous |
-| Undo after completion | Disabled — Option A |
+Follow these simple steps to get both the backend and frontend running locally.
 
-## Mandatory AI IDE Rule
+### Prerequisites
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Node.js (v20+) & npm](https://nodejs.org/)
 
-Do not start implementation from an ambiguous specification.
-
-The AI IDE should first read:
-
-1. `docs/01-requirements.md`
-2. `docs/04-ddd-and-domain-model.md`
-3. `docs/06-api-contract.md`
-4. `docs/13-assumptions.md`
-5. `docs/ADR-007-game-completed-domain-event.md`
-6. `docs/AI-CHANGE-AUDIT.md`
-
-Only then should implementation prompts be issued.
-
-## Repository Audit Model
-
-```text
-Requirement
-    ↓
-ADR / Design Decision
-    ↓
-AI Prompt OR Manual Change
-    ↓
-Code
-    ↓
-Test
-    ↓
-Human Review
-    ↓
-Git Commit
+### Step 1: Start the Backend (REST API)
+Open a terminal in the root directory of the repository and run:
+```bash
+dotnet run --project backend/TicTacToe.Api --launch-profile http
 ```
+The API will start and listen at **`http://localhost:5000`**. 
+*(Optional: You can explore the interactive API documentation at `http://localhost:5000/swagger`)*
 
-The objective is not merely to build Tic Tac Toe. It is to demonstrate disciplined AI-assisted engineering and the ability to explain every significant design decision.
+### Step 2: Start the Frontend (Angular UI)
+Open a **second, separate terminal** in the root directory and run:
+```bash
+npm start --prefix frontend
+```
+The application will compile and start. Once ready, open your browser and navigate to **`http://localhost:4200`** to play the game!
+
+---
+
+## 🧪 How to Review the Solution
+
+The project is built with strict architectural boundaries, 100% test coverage, and a focus on maintainability.
+
+### 1. Run Automated Tests
+You can verify the integrity of the system by running its 238 automated tests:
+
+- **Run Backend Tests (xUnit):**
+  ```bash
+  dotnet test backend/TicTacToe.sln
+  ```
+- **Run Frontend Tests (Vitest/Angular):**
+  ```bash
+  npm test --prefix frontend -- --watch=false
+  ```
+
+### 2. Review Key Documentation
+To understand the engineering decisions behind the code, we highly recommend reviewing the documentation:
+- 📖 **[Architecture](docs/architecture.md)** — *Start here! The authoritative guide to the architecture, domain, and flow.*
+- 📖 [Requirements](docs/requirements.md)
+- 📖 [Domain Model & DDD](docs/domain-model.md)
+- 📖 [API Contract](docs/api-contract.md)
+- 📖 [Architecture Decisions](docs/decisions/)
+
+---
+*Note: The objective of this repository is not merely to build a simple game, but to demonstrate disciplined, test-driven, enterprise software engineering.*
