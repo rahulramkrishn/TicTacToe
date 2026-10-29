@@ -4,7 +4,7 @@
   "ticket": "TTT-1",
   "prBase": "main",
   "branch": "feat/rahul/TTT-1_rematch-button",
-  "phase": "review",
+  "phase": "done",
   "base": {
     "feature": "2574cde71ec3a563f88742eab1b428c02ccada30",
     "red": "2574cde71ec3a563f88742eab1b428c02ccada30"
@@ -24,6 +24,11 @@
       "at": "2026-10-29T17:13:14.954Z",
       "by": "rahul@missiondatum.com",
       "hash": "88d82fc326a653148ece4cbec5d6c34218a7a2b02782e0c46f480139a6fd4594"
+    },
+    "review": {
+      "at": "2026-10-29T18:15:26.712Z",
+      "by": "rahul@missiondatum.com",
+      "sha": "ba8fa47dcfc54ca2c83db4988029f7b0d4d97517"
     }
   },
   "evidence": {
@@ -50,7 +55,7 @@
       "scope": "full",
       "ok": true,
       "exit": 0,
-      "at": "2026-10-29T18:13:03.380Z",
+      "at": "2026-10-29T18:16:31.884Z",
       "fp": "e7cbdef1ea91d2d16836f49ef0b5d8cc5e2341f5e920f0d6ceb2c4a9268efc1d",
       "cmd": "dotnet test backend/TicTacToe.sln && npm --prefix frontend test -- --watch=false"
     },
@@ -68,7 +73,7 @@
       "scope": "full",
       "ok": true,
       "exit": 0,
-      "at": "2026-10-29T18:13:03.380Z",
+      "at": "2026-10-29T18:16:31.884Z",
       "fp": "e7cbdef1ea91d2d16836f49ef0b5d8cc5e2341f5e920f0d6ceb2c4a9268efc1d",
       "cmd": "dotnet test backend/TicTacToe.sln && npm --prefix frontend test -- --watch=false"
     }
@@ -112,8 +117,19 @@
       "at": "2026-10-29T18:12:48.264Z",
       "from": "challenge",
       "to": "review"
+    },
+    {
+      "at": "2026-10-29T18:33:58.691Z",
+      "from": "review",
+      "to": "pr"
+    },
+    {
+      "at": "2026-10-29T19:13:48.858Z",
+      "from": "pr",
+      "to": "done"
     }
   ],
   "v": 1,
-  "updatedAt": "2026-10-29T18:13:03.515Z"
+  "updatedAt": "2026-10-29T19:13:48.865Z",
+  "prUrl": "https://github.com/rahulramkrishn/TicTacToe/pull/1"
 }
