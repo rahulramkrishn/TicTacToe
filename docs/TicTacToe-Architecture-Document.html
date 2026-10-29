@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic-Tac-Toe Enterprise Solution — Architecture &amp; Design Document</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+      --primary: #1a1a2e;
+      --secondary: #16213e;
+      --accent: #0f3460;
+      --highlight: #e94560;
+      --text: #2c3e50;
+      --text-light: #5a6c7d;
+      --bg: #ffffff;
+      --bg-alt: #f8f9fc;
+      --border: #e2e8f0;
+      --code-bg: #1e1e2e;
+      --code-text: #cdd6f4;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      font-size: 11pt;
+    }
+
+    @media print {
+      body { font-size: 10pt; line-height: 1.6; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+      @page { margin: 1.5cm 2cm; size: A4; }
+      .cover-page { height: 100vh; display: flex; flex-direction: column; justify-content: center; }
+    }
+
+    /* Cover Page */
+    .cover-page {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 40%, var(--accent) 100%);
+      color: white;
+      padding: 60px 80px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .cover-page h1 {
+      font-size: 36pt;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 10px;
+      color: white;
+      border-bottom: none;
+    }
+
+    .cover-page .subtitle {
+      font-size: 16pt;
+      font-weight: 300;
+      opacity: 0.85;
+      margin-bottom: 40px;
+    }
+
+    .cover-meta {
+      margin-top: 60px;
+      border-top: 2px solid rgba(255,255,255,0.2);
+      padding-top: 30px;
+    }
+
+    .cover-meta table { border-collapse: collapse; }
+    .cover-meta td {
+      padding: 6px 20px 6px 0;
+      font-size: 11pt;
+    }
+    .cover-meta td:first-child {
+      font-weight: 600;
+      opacity: 0.7;
+      text-transform: uppercase;
+      font-size: 9pt;
+      letter-spacing: 1px;
+    }
+
+    /* Content */
+    .content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 60px;
+    }
+
+    h1 {
+      font-size: 24pt;
+      font-weight: 800;
+      color: var(--primary);
+      margin-top: 50px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--highlight);
+    }
+
+    h2 {
+      font-size: 16pt;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-top: 35px;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 13pt;
+      font-weight: 600;
+      color: var(--accent);
+      margin-top: 25px;
+      margin-bottom: 8px;
+    }
+
+    h4 {
+      font-size: 11pt;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 18px;
+      margin-bottom: 6px;
+    }
+
+    p { margin-bottom: 12px; }
+
+    ul, ol {
+      margin-bottom: 12px;
+      padding-left: 24px;
+    }
+
+    li { margin-bottom: 4px; }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5pt;
+      background: var(--bg-alt);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    pre {
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 16px 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0 16px 0;
+      font-size: 9pt;
+      line-height: 1.5;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 20px 0;
+      font-size: 10pt;
+    }
+
+    th {
+      background: var(--primary);
+      color: white;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 9pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:nth-child(even) td { background: var(--bg-alt); }
+
+    .callout {
+      border-left: 4px solid var(--info);
+      background: #eff6ff;
+      padding: 14px 18px;
+      margin: 14px 0;
+      border-radius: 0 6px 6px 0;
+      font-size: 10pt;
+    }
+
+    .callout.warning {
+      border-color: var(--warning);
+      background: #fffbeb;
+    }
+
+    .callout.success {
+      border-color: var(--success);
+      background: #ecfdf5;
+    }
+
+    .diagram-box {
+      background: var(--bg-alt);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 16px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9pt;
+      line-height: 1.6;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 8pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-domain { background: #dbeafe; color: #1e40af; }
+    .badge-app { background: #fce7f3; color: #9d174d; }
+    .badge-infra { background: #d1fae5; color: #065f46; }
+    .badge-api { background: #fef3c7; color: #92400e; }
+    .badge-ui { background: #ede9fe; color: #5b21b6; }
+    .badge-pattern { background: #e0e7ff; color: #3730a3; }
+
+    .toc {
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 30px 40px;
+      margin: 30px 0;
+    }
+
+    .toc h2 {
+      margin-top: 0;
+      color: var(--primary);
+    }
+
+    .toc ol {
+      counter-reset: toc-counter;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .toc > ol > li {
+      counter-increment: toc-counter;
+      margin-bottom: 6px;
+    }
+
+    .toc > ol > li::before {
+      content: counter(toc-counter) ".";
+      font-weight: 700;
+      color: var(--highlight);
+      margin-right: 8px;
+    }
+
+    .toc a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .toc a:hover { color: var(--highlight); }
+
+    .file-ref {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9pt;
+      color: var(--info);
+    }
+
+    .section-divider {
+      border: none;
+      border-top: 2px solid var(--border);
+      margin: 40px 0;
+    }
+
+    .footer {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 9pt;
+      padding: 30px;
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ======================== COVER PAGE ======================== -->
+<div class="cover-page">
+  <h1>Tic-Tac-Toe</h1>
+  <div class="subtitle">Enterprise Solution — Architecture &amp; Design Document</div>
+  <p style="font-size:12pt; opacity:0.8; max-width:600px;">
+    High-Level Design, Low-Level Design, Component Architecture, Implementation Details,
+    and Design Pattern Rationale for a full-stack Tic-Tac-Toe application built with
+    .NET 8, Angular 21, Domain-Driven Design, and Onion Architecture.
+  </p>
+
+  <div class="cover-meta">
+    <table>
+      <tr><td>Version</td><td>1.0</td></tr>
+      <tr><td>Date</td><td>September 2026</td></tr>
+      <tr><td>Backend Stack</td><td>.NET 8 / ASP.NET Core / C# 12</td></tr>
+      <tr><td>Frontend Stack</td><td>Angular 21 / TypeScript 5.9 / Signals</td></tr>
+      <tr><td>Architecture</td><td>Onion Architecture + DDD + GoF Patterns</td></tr>
+      <tr><td>Test Framework</td><td>xUnit (Backend) / Vitest (Frontend)</td></tr>
+      <tr><td>Total Tests</td><td>238 automated tests</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ======================== TABLE OF CONTENTS ======================== -->
+<div class="content">
+
+<div class="toc page-break">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">Executive Summary</a></li>
+    <li><a href="#s2">High-Level Design (HLD)</a></li>
+    <li><a href="#s3">System Architecture &amp; Onion Layers</a></li>
+    <li><a href="#s4">Low-Level Design (LLD) — Domain Layer</a></li>
+    <li><a href="#s5">Low-Level Design (LLD) — Application Layer</a></li>
+    <li><a href="#s6">Low-Level Design (LLD) — Infrastructure Layer</a></li>
+    <li><a href="#s7">Low-Level Design (LLD) — API / Presentation Layer</a></li>
+    <li><a href="#s8">Low-Level Design (LLD) — Frontend (Angular 21)</a></li>
+    <li><a href="#s9">Design Patterns &amp; Rationale</a></li>
+    <li><a href="#s10">API Contract &amp; Error Handling</a></li>
+    <li><a href="#s11">Concurrency &amp; Thread Safety</a></li>
+    <li><a href="#s12">Data Flow — End-to-End Sequence</a></li>
+    <li><a href="#s13">Testing Strategy</a></li>
+    <li><a href="#s14">Non-Functional Requirements</a></li>
+    <li><a href="#s15">Technology Stack Summary</a></li>
+    <li><a href="#s16">Future Evolution &amp; Scalability</a></li>
+    <li><a href="#s17">Appendix A — SQLite Migration: Architecture &amp; Implementation Changes</a></li>
+  </ol>
+</div>
+
+<!-- ======================== 1. EXECUTIVE SUMMARY ======================== -->
+<h1 id="s1">1. Executive Summary</h1>
+
+<p>This document provides a comprehensive architectural blueprint for the <strong>Tic-Tac-Toe Enterprise Solution</strong> — a full-stack web application demonstrating disciplined, test-driven, enterprise software engineering. The system features a <strong>.NET 8 backend</strong> following Domain-Driven Design (DDD) and Onion Architecture principles, paired with an <strong>Angular 21 frontend</strong> using Standalone Components and reactive Signals.</p>
+
+<p>The application supports <strong>Two-Player</strong> (pass-and-play) and <strong>Computer</strong> (human vs AI) game modes, with features including move history tracking, snapshot-based undo, session-level scoreboard, and deterministic computer AI — all governed by the backend as the single source of truth.</p>
+
+<div class="callout success">
+  <strong>Key Metrics:</strong> 5 backend projects · 7 Angular components · 238 automated tests · 7 REST endpoints · 3 GoF design patterns · 100% domain rule test coverage
+</div>
+
+<!-- ======================== 2. HIGH-LEVEL DESIGN ======================== -->
+<h1 id="s2" class="page-break">2. High-Level Design (HLD)</h1>
+
+<h2>2.1 System Overview</h2>
+<p>The system is a client-server web application with clear separation between the presentation tier (Angular SPA) and the business logic tier (.NET REST API). All game state, rules enforcement, and AI logic are owned exclusively by the backend.</p>
+
+<div class="diagram-box">
+┌─────────────────────────────────────────────────────┐
+│                   BROWSER (Client)                  │
+│                                                     │
+│   ┌─────────────────────────────────────────────┐   │
+│   │           Angular 21 SPA                    │   │
+│   │  ┌──────┐ ┌────────┐ ┌──────┐ ┌─────────┐  │   │
+│   │  │Board │ │Controls│ │Score │ │ History │  │   │
+│   │  └──┬───┘ └───┬────┘ └──┬───┘ └────┬────┘  │   │
+│   │     └─────────┴─────────┴──────────┘        │   │
+│   │              GameFacade (Signals)            │   │
+│   │              GameApiService                  │   │
+│   └──────────────────┬──────────────────────────┘   │
+│                      │ HTTP/REST/JSON                │
+└──────────────────────┼──────────────────────────────┘
+                       │
+┌──────────────────────┼──────────────────────────────┐
+│                      ▼        SERVER (Backend)      │
+│   ┌──────────────────────────────────────────┐      │
+│   │        ASP.NET Core 8 API Host           │      │
+│   │  ┌────────────┐  ┌────────────────────┐  │      │
+│   │  │ Controllers│  │Exception Middleware │  │      │
+│   │  └─────┬──────┘  └────────────────────┘  │      │
+│   │        ▼                                 │      │
+│   │  ┌────────────────────────────────────┐  │      │
+│   │  │      Application Services          │  │      │
+│   │  │  GameService · ScoreboardService   │  │      │
+│   │  └─────────────┬────────────────────┘  │      │
+│   │                ▼                        │      │
+│   │  ┌────────────────────────────────────┐  │      │
+│   │  │         Domain Model               │  │      │
+│   │  │  Game · Board · WinDetector · AI   │  │      │
+│   │  └─────────────┬────────────────────┘  │      │
+│   │                ▼                        │      │
+│   │  ┌────────────────────────────────────┐  │      │
+│   │  │      Infrastructure                │  │      │
+│   │  │  InMemory Repositories             │  │      │
+│   │  └────────────────────────────────────┘  │      │
+│   └──────────────────────────────────────────┘      │
+└─────────────────────────────────────────────────────┘
+</div>
+
+<h2>2.2 Key Architectural Decisions</h2>
+
+<table>
+  <tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
+  <tr><td>Architecture Style</td><td>Onion / Clean Architecture</td><td>Domain isolation, testability, dependency inversion</td></tr>
+  <tr><td>Domain Modeling</td><td>DDD (Pragmatic)</td><td>Business rules expressed as domain invariants</td></tr>
+  <tr><td>State Authority</td><td>Backend-only</td><td>Prevents client tampering, single source of truth</td></tr>
+  <tr><td>Storage</td><td>In-Memory (ConcurrentDictionary)</td><td>Assessment scope; repository pattern enables swap</td></tr>
+  <tr><td>Undo Strategy</td><td>GoF Memento Pattern</td><td>Snapshot-based restore, no heuristic reversal</td></tr>
+  <tr><td>AI Strategy</td><td>GoF Strategy Pattern</td><td>Pluggable, testable, OCP-compliant</td></tr>
+  <tr><td>Frontend State</td><td>Angular Signals (no NgRx)</td><td>Proportional complexity for app size</td></tr>
+  <tr><td>API Style</td><td>RESTful Resource-Oriented</td><td>Industry standard, Swagger-documented</td></tr>
+  <tr><td>Error Format</td><td>RFC 7807 ProblemDetails</td><td>Machine-readable, consistent error contract</td></tr>
+  <tr><td>Serialization</td><td>JSON with string enums</td><td>Human-readable API payloads</td></tr>
+</table>
+
+<h2>2.3 Component Interaction Overview</h2>
+
+<div class="diagram-box">
+  User Click → Angular Component → GameFacade.playMove()
+       → GameApiService.makeMove() → HTTP POST /api/games/{id}/moves
+       → GamesController.MakeMove() → GameService.MakeMoveAsync()
+       → Game.MakeMove() / Game.ExecuteTurn()
+            → Board.PlaceMark() → WinDetector.CheckWin()
+            → [Computer Mode: BasicComputerMoveStrategy.SelectMove()]
+       → Scoreboard.RecordWin() / RecordDraw() [if terminal]
+       → DtoMappingExtensions.ToDto()
+       → HTTP 200 JSON Response → GameFacade updates signals → UI re-renders
+</div>
+
+
+<!-- ======================== 3. SYSTEM ARCHITECTURE ======================== -->
+<h1 id="s3" class="page-break">3. System Architecture &amp; Onion Layers</h1>
+
+<h2>3.1 Onion Architecture</h2>
+<p>The backend strictly follows <strong>Onion (Clean) Architecture</strong> with four concentric layers. Dependencies point exclusively inward — outer layers depend on inner layers, never the reverse.</p>
+
+<div class="diagram-box">
+                    ┌─────────────────────────┐
+                    │      API Layer           │  ← Outermost
+                    │  Controllers, Middleware │
+                    │  API Request Models      │
+                    ├─────────────────────────┤
+                    │   Infrastructure Layer   │
+                    │  InMemoryGameRepository  │
+                    │  InMemoryScoreboardRepo  │
+                    ├─────────────────────────┤
+                    │   Application Layer      │
+                    │  GameService, DTOs       │
+                    │  ScoreboardService       │
+                    │  Mapping Extensions      │
+                    ├─────────────────────────┤
+                    │      Domain Layer        │  ← Innermost (Core)
+                    │  Game Aggregate Root     │
+                    │  Board, Scoreboard       │
+                    │  Value Objects, Services │
+                    │  Repository Interfaces   │
+                    └─────────────────────────┘
+</div>
+
+<h2>3.2 Project Structure</h2>
+
+<table>
+  <tr><th>Project</th><th>Layer</th><th>Dependencies</th><th>Purpose</th></tr>
+  <tr>
+    <td><code>TicTacToe.Domain</code></td>
+    <td><span class="badge badge-domain">Domain</span></td>
+    <td>None (zero external)</td>
+    <td>Aggregates, Entities, Value Objects, Domain Services, Repository Interfaces, Exceptions</td>
+  </tr>
+  <tr>
+    <td><code>TicTacToe.Application</code></td>
+    <td><span class="badge badge-app">Application</span></td>
+    <td>Domain</td>
+    <td>Use-case orchestration, DTOs, Command models, DTO Mapping, App-level Exceptions</td>
+  </tr>
+  <tr>
+    <td><code>TicTacToe.Infrastructure</code></td>
+    <td><span class="badge badge-infra">Infrastructure</span></td>
+    <td>Domain</td>
+    <td>Repository implementations (in-memory storage)</td>
+  </tr>
+  <tr>
+    <td><code>TicTacToe.Api</code></td>
+    <td><span class="badge badge-api">API</span></td>
+    <td>Application, Infrastructure, Domain</td>
+    <td>ASP.NET Core host, Controllers, Middleware, DI composition root</td>
+  </tr>
+  <tr>
+    <td><code>TicTacToe.Tests</code></td>
+    <td>Testing</td>
+    <td>All projects</td>
+    <td>Unit, integration, and smoke tests across all layers</td>
+  </tr>
+  <tr>
+    <td><code>frontend/</code></td>
+    <td><span class="badge badge-ui">Frontend</span></td>
+    <td>Backend API (HTTP)</td>
+    <td>Angular 21 SPA — components, services, models, facade</td>
+  </tr>
+</table>
+
+<h2>3.3 Dependency Rule Enforcement</h2>
+<div class="callout">
+  <strong>Inward-Only Dependencies:</strong> The Domain layer has zero project references. The Application layer references only Domain. Infrastructure references only Domain. The API layer (composition root) wires everything together via Dependency Injection.
+</div>
+
+
+<!-- ======================== 4. LLD — DOMAIN LAYER ======================== -->
+<h1 id="s4" class="page-break">4. Low-Level Design (LLD) — Domain Layer</h1>
+<p><span class="badge badge-domain">Domain</span> — Project: <span class="file-ref">TicTacToe.Domain</span></p>
+
+<p>The Domain layer is the <strong>heart of the system</strong>. It contains all business rules, game invariants, and domain logic. It has <strong>zero dependencies</strong> on any external framework, HTTP library, or persistence technology.</p>
+
+<h2>4.1 Game Aggregate Root</h2>
+<p><span class="file-ref">Aggregates/Game.cs</span> — 227 lines</p>
+
+<p>The <code>Game</code> class is the <strong>Aggregate Root</strong> — the sole entry point for all game mutations. It is the <em>Originator</em> and <em>Caretaker</em> in the GoF Memento Pattern.</p>
+
+<h3>Responsibilities</h3>
+<ul>
+  <li>Enforces all game lifecycle invariants (InProgress → Won/Draw)</li>
+  <li>Validates turn alternation (X→O→X→…)</li>
+  <li>Validates move legality (cell bounds, cell vacancy)</li>
+  <li>Delegates win detection to <code>WinDetector</code> domain service</li>
+  <li>Manages Memento snapshots for undo operations</li>
+  <li>Coordinates Computer Mode turns via <code>ExecuteTurn()</code></li>
+</ul>
+
+<h3>Key Methods</h3>
+<table>
+  <tr><th>Method</th><th>Signature</th><th>Description</th></tr>
+  <tr><td><code>Create</code></td><td><code>static Game Create(GameMode mode)</code></td><td>Factory method creating a fresh game with a new GUID</td></tr>
+  <tr><td><code>MakeMove</code></td><td><code>void MakeMove(Player, CellIndex)</code></td><td>Executes a validated player move; captures memento, places mark, checks win/draw, alternates turn</td></tr>
+  <tr><td><code>PlayComputerMove</code></td><td><code>CellIndex PlayComputerMove(IComputerMoveStrategy)</code></td><td>Executes Computer (Player O) move using injected strategy</td></tr>
+  <tr><td><code>ExecuteTurn</code></td><td><code>(CellIndex, CellIndex?) ExecuteTurn(CellIndex, IComputerMoveStrategy)</code></td><td>Orchestrates human X + computer O as a single logical turn</td></tr>
+  <tr><td><code>Undo</code></td><td><code>void Undo()</code></td><td>Restores previous state from memento stack</td></tr>
+  <tr><td><code>Reset</code></td><td><code>void Reset()</code></td><td>Clears game state while preserving GameId</td></tr>
+</table>
+
+<h3>Business Invariants Enforced</h3>
+<ol>
+  <li>Game must be <code>InProgress</code> to accept moves</li>
+  <li>Player must match <code>CurrentPlayer</code></li>
+  <li>Target cell must be unoccupied</li>
+  <li>Memento snapshot captured <em>before</em> every mutation</li>
+  <li>Win detection evaluated after every move (8 canonical lines)</li>
+  <li>Draw detected when board is full with no winner</li>
+  <li>Undo disabled after game completion (Option A — ADR-004)</li>
+  <li>Computer moves only in Computer mode when it's Player O's turn</li>
+</ol>
+
+<h3>Memento Capture Logic</h3>
+<ul>
+  <li><strong>TwoPlayer Mode:</strong> Captures memento before every move</li>
+  <li><strong>Computer Mode:</strong> Captures memento before the human (X) move only — this ensures undo reverts the entire human+computer pair atomically</li>
+</ul>
+
+<hr class="section-divider">
+
+<h2>4.2 Board Entity</h2>
+<p><span class="file-ref">Entities/Board.cs</span> — 84 lines</p>
+
+<p>The <code>Board</code> entity represents the 3×3 game grid as a flat 9-cell array indexed 0–8.</p>
+
+<h3>Why a Flat Array?</h3>
+<ul>
+  <li>Simpler indexing (single <code>cellIndex</code>) vs. row/column pairs</li>
+  <li>Direct alignment with the API contract (cellIndex 0–8)</li>
+  <li>Canonical board layout: <code>0 1 2 / 3 4 5 / 6 7 8</code></li>
+</ul>
+
+<h3>Key Properties &amp; Methods</h3>
+<table>
+  <tr><th>Member</th><th>Type</th><th>Description</th></tr>
+  <tr><td><code>CellCount</code></td><td><code>const int = 9</code></td><td>Grid size invariant</td></tr>
+  <tr><td><code>Cells</code></td><td><code>IReadOnlyList&lt;Player?&gt;</code></td><td>Immutable view of the 9 cells</td></tr>
+  <tr><td><code>IsOccupied(CellIndex)</code></td><td><code>bool</code></td><td>Checks if cell is taken</td></tr>
+  <tr><td><code>IsFull</code></td><td><code>bool</code></td><td>True when all 9 cells are occupied</td></tr>
+  <tr><td><code>PlaceMark(CellIndex, Player)</code></td><td><code>void</code></td><td>Places mark; throws if occupied</td></tr>
+  <tr><td><code>Clone()</code></td><td><code>Board</code></td><td>Deep copy for memento snapshots and AI simulation</td></tr>
+</table>
+
+<h3>Invariant</h3>
+<p>Occupied cells cannot be overwritten — <code>PlaceMark</code> throws <code>CellOccupiedException</code> if the cell is already taken.</p>
+
+<hr class="section-divider">
+
+<h2>4.3 Scoreboard Entity</h2>
+<p><span class="file-ref">Entities/Scoreboard.cs</span> — 86 lines</p>
+
+<p>Tracks session-level game outcomes: X wins, O wins, and Draws. Designed as a separate entity (not part of the Game aggregate) to decouple game lifecycle from global session counters.</p>
+
+<h3>Thread Safety</h3>
+<p>Uses internal <code>lock (_syncLock)</code> synchronization on all mutation methods (<code>RecordWin</code>, <code>RecordDraw</code>, <code>Reset</code>) and on <code>TotalGames</code>, ensuring safe concurrent access from multiple game completions.</p>
+
+<hr class="section-divider">
+
+<h2>4.4 Value Objects</h2>
+
+<table>
+  <tr><th>Value Object</th><th>File</th><th>Description</th><th>Key Invariant</th></tr>
+  <tr>
+    <td><code>GameId</code></td>
+    <td><span class="file-ref">ValueObjects/GameId.cs</span></td>
+    <td>Strongly-typed GUID identity for game sessions</td>
+    <td>Cannot be <code>Guid.Empty</code></td>
+  </tr>
+  <tr>
+    <td><code>CellIndex</code></td>
+    <td><span class="file-ref">ValueObjects/CellIndex.cs</span></td>
+    <td>Canonical board cell index (0–8)</td>
+    <td><code>0 ≤ value ≤ 8</code></td>
+  </tr>
+  <tr>
+    <td><code>Player</code></td>
+    <td><span class="file-ref">ValueObjects/Player.cs</span></td>
+    <td>Enum: X = 1, O = 2</td>
+    <td>Extension: <code>Other()</code> for turn alternation</td>
+  </tr>
+  <tr>
+    <td><code>GameMode</code></td>
+    <td><span class="file-ref">ValueObjects/GameMode.cs</span></td>
+    <td>Enum: TwoPlayer = 1, Computer = 2</td>
+    <td>Controls game flow and undo behavior</td>
+  </tr>
+  <tr>
+    <td><code>GameStatus</code></td>
+    <td><span class="file-ref">ValueObjects/GameStatus.cs</span></td>
+    <td>Enum: InProgress = 1, Won = 2, Draw = 3</td>
+    <td>Extension: <code>IsTerminal()</code> returns true for Won/Draw</td>
+  </tr>
+  <tr>
+    <td><code>Move</code></td>
+    <td><span class="file-ref">ValueObjects/Move.cs</span></td>
+    <td>Immutable record: MoveNumber, Player, CellIndex</td>
+    <td><code>MoveNumber ≥ 1</code></td>
+  </tr>
+</table>
+
+<h3>Why Value Objects?</h3>
+<ul>
+  <li><strong>Self-Validating:</strong> Invariants are enforced at construction (e.g., <code>CellIndex</code> rejects values outside 0–8)</li>
+  <li><strong>Primitive Obsession Prevention:</strong> Prevents passing raw <code>int</code> / <code>Guid</code> values that could be semantically incorrect</li>
+  <li><strong>Type Safety:</strong> Compiler-enforced — cannot accidentally pass a <code>GameId</code> where a <code>CellIndex</code> is expected</li>
+  <li><strong>Immutability:</strong> Implemented as <code>readonly record struct</code> for zero-allocation value semantics</li>
+</ul>
+
+<hr class="section-divider">
+
+<h2>4.5 Domain Services</h2>
+
+<h3>4.5.1 WinDetector</h3>
+<p><span class="file-ref">Services/WinDetector.cs</span> — 54 lines</p>
+
+<p>A <strong>stateless domain service</strong> that evaluates the board against the 8 canonical winning lines (3 rows + 3 columns + 2 diagonals).</p>
+
+<pre><code>private static readonly int[][] WinningLines = {
+    new[] { 0, 1, 2 }, // Row 0
+    new[] { 3, 4, 5 }, // Row 1
+    new[] { 6, 7, 8 }, // Row 2
+    new[] { 0, 3, 6 }, // Column 0
+    new[] { 1, 4, 7 }, // Column 1
+    new[] { 2, 5, 8 }, // Column 2
+    new[] { 0, 4, 8 }, // Main diagonal
+    new[] { 2, 4, 6 }  // Anti-diagonal
+};</code></pre>
+
+<p>Returns a <code>WinResult</code> record containing: <code>IsWin</code>, <code>Winner</code>, and the exact 3 <code>WinningCells</code> indices. Returns <code>WinResult.None</code> if no winner.</p>
+
+<h3>4.5.2 IComputerMoveStrategy (Interface)</h3>
+<p><span class="file-ref">Services/IComputerMoveStrategy.cs</span> — 25 lines</p>
+
+<p>The <strong>Strategy Pattern interface</strong> defining the contract for AI move selection. Implementations must be:</p>
+<ul>
+  <li><strong>Pure:</strong> No side effects, no mutation of the board or aggregate</li>
+  <li><strong>Deterministic:</strong> Same board state always yields the same move</li>
+  <li><strong>Legal:</strong> Never returns an occupied cell</li>
+</ul>
+
+<h3>4.5.3 BasicComputerMoveStrategy</h3>
+<p><span class="file-ref">Services/BasicComputerMoveStrategy.cs</span> — 96 lines</p>
+
+<p>The concrete AI implementation using a <strong>5-tier deterministic priority hierarchy</strong>:</p>
+
+<table>
+  <tr><th>Priority</th><th>Rule</th><th>Description</th></tr>
+  <tr><td>1</td><td>Win</td><td>If O can complete a winning line, take it (lowest index if multiple)</td></tr>
+  <tr><td>2</td><td>Block</td><td>If X can win next turn, block it (lowest threatened index)</td></tr>
+  <tr><td>3</td><td>Center</td><td>Take center cell (index 4) if available</td></tr>
+  <tr><td>4</td><td>Corners</td><td>Take corners in deterministic order: 0 → 2 → 6 → 8</td></tr>
+  <tr><td>5</td><td>Fallback</td><td>Take the first available cell in natural order 0→8</td></tr>
+</table>
+
+<p><strong>Implementation Technique:</strong> Win/Block detection uses <em>candidate simulation</em> — for each empty cell, a cloned board is created and the candidate move is placed, then <code>WinDetector.CheckWin()</code> evaluates whether it produces a win. This is pure (no mutation of the real board).</p>
+
+<hr class="section-divider">
+
+<h2>4.6 GameMemento</h2>
+<p><span class="file-ref">Mementos/GameMemento.cs</span> — 17 lines</p>
+
+<p>An <code>internal sealed record</code> capturing a complete snapshot of the Game aggregate's state for undo operations. Stores:</p>
+<ul>
+  <li>Board snapshot (deep clone)</li>
+  <li>CurrentPlayer</li>
+  <li>GameStatus</li>
+  <li>Winner</li>
+  <li>WinningCells</li>
+  <li>MoveHistory</li>
+</ul>
+
+<p>Visibility is <code>internal</code> — only the <code>Game</code> aggregate (Originator) within the Domain assembly can create or consume mementos. This prevents external layers from accessing or tampering with snapshots.</p>
+
+<hr class="section-divider">
+
+<h2>4.7 Repository Interfaces</h2>
+
+<table>
+  <tr><th>Interface</th><th>File</th><th>Methods</th></tr>
+  <tr>
+    <td><code>IGameRepository</code></td>
+    <td><span class="file-ref">Repositories/IGameRepository.cs</span></td>
+    <td><code>GetByIdAsync(GameId)</code> · <code>SaveAsync(Game)</code></td>
+  </tr>
+  <tr>
+    <td><code>IScoreboardRepository</code></td>
+    <td><span class="file-ref">Repositories/IScoreboardRepository.cs</span></td>
+    <td><code>GetScoreboardAsync()</code> · <code>SaveScoreboardAsync(Scoreboard)</code></td>
+  </tr>
+</table>
+
+<div class="callout">
+  <strong>Dependency Inversion:</strong> Interfaces are defined in the Domain layer. Implementations live in Infrastructure. This ensures the Domain has zero knowledge of how data is stored, and storage can be swapped (e.g., SQLite, PostgreSQL) without touching domain code.
+</div>
+
+<hr class="section-divider">
+
+<h2>4.8 Domain Exceptions</h2>
+
+<table>
+  <tr><th>Exception</th><th>When Thrown</th><th>HTTP Mapping</th></tr>
+  <tr><td><code>DomainException</code> (abstract base)</td><td>Base for all domain violations</td><td>—</td></tr>
+  <tr><td><code>CellOccupiedException</code></td><td>Move targets an occupied cell</td><td>409 Conflict</td></tr>
+  <tr><td><code>InvalidTurnException</code></td><td>Wrong player attempts a move</td><td>409 Conflict</td></tr>
+  <tr><td><code>GameAlreadyCompletedException</code></td><td>Move on a Won/Draw game</td><td>409 Conflict</td></tr>
+  <tr><td><code>CannotUndoException</code></td><td>Undo when disabled (no moves or completed)</td><td>409 Conflict</td></tr>
+  <tr><td><code>InvalidCellIndexException</code></td><td>CellIndex outside 0–8 range</td><td>400 Bad Request</td></tr>
+</table>
+
+<p>Domain exceptions are <strong>pure domain concepts</strong> with zero HTTP or framework dependencies. The API layer's <code>ExceptionHandlingMiddleware</code> maps them to appropriate HTTP status codes.</p>
+
+
+<!-- ======================== 5. LLD — APPLICATION LAYER ======================== -->
+<h1 id="s5" class="page-break">5. Low-Level Design (LLD) — Application Layer</h1>
+<p><span class="badge badge-app">Application</span> — Project: <span class="file-ref">TicTacToe.Application</span></p>
+
+<p>The Application layer is the <strong>orchestration layer</strong> — it coordinates domain objects, manages persistence, and translates domain state into DTOs. It is transport-neutral (no ASP.NET Core dependencies).</p>
+
+<h2>5.1 GameService</h2>
+<p><span class="file-ref">Services/GameService.cs</span> — 184 lines</p>
+
+<h3>Responsibilities</h3>
+<ul>
+  <li>Orchestrates Game aggregate lifecycle (create, move, undo, reset)</li>
+  <li>Manages per-GameId concurrency synchronization via <code>ConcurrentDictionary&lt;GameId, SemaphoreSlim&gt;</code></li>
+  <li>Detects terminal state transitions (InProgress → Won/Draw) and updates the Scoreboard</li>
+  <li>Coordinates Computer Mode logical turns (human X + computer O atomically)</li>
+  <li>Maps aggregate state to DTOs for the API layer</li>
+</ul>
+
+<h3>Use Case Methods</h3>
+<table>
+  <tr><th>Method</th><th>Description</th></tr>
+  <tr><td><code>CreateGameAsync</code></td><td>Creates a new Game aggregate, persists it, returns DTO</td></tr>
+  <tr><td><code>GetGameAsync</code></td><td>Read-only retrieval of current game state</td></tr>
+  <tr><td><code>MakeMoveAsync</code></td><td>Validates and executes a move (+ computer response in Computer mode), detects terminal transition, updates scoreboard, persists, returns DTO</td></tr>
+  <tr><td><code>UndoAsync</code></td><td>Restores previous state from memento, persists</td></tr>
+  <tr><td><code>ResetGameAsync</code></td><td>Resets game while preserving GameId, persists</td></tr>
+</table>
+
+<h3>Concurrency Design</h3>
+<p>Each <code>GameId</code> gets its own <code>SemaphoreSlim(1,1)</code> mutex, ensuring that concurrent HTTP requests targeting the same game are serialized. This prevents race conditions where two moves could be applied simultaneously.</p>
+
+<pre><code>var lockObj = _gameLocks.GetOrAdd(gameId, _ => new SemaphoreSlim(1, 1));
+await lockObj.WaitAsync(cancellationToken);
+try {
+    // ... atomic game mutation ...
+} finally {
+    lockObj.Release();
+}</code></pre>
+
+<h2>5.2 ScoreboardService</h2>
+<p><span class="file-ref">Services/ScoreboardService.cs</span> — 39 lines</p>
+
+<p>Thin orchestration service for scoreboard queries and resets. Delegates to <code>IScoreboardRepository</code>.</p>
+
+<h2>5.3 Application DTOs</h2>
+<p><span class="file-ref">Models/ApplicationModels.cs</span> — 53 lines</p>
+
+<table>
+  <tr><th>DTO</th><th>Purpose</th></tr>
+  <tr><td><code>GameStateDto</code></td><td>Full authoritative game state (board, player, status, history, scoreboard) — the single response for all game operations</td></tr>
+  <tr><td><code>ScoreboardDto</code></td><td>Session scoreboard counters (xWins, oWins, draws, totalGames)</td></tr>
+  <tr><td><code>MoveDto</code></td><td>Individual move record (moveNumber, player, cellIndex)</td></tr>
+  <tr><td><code>CreateGameCommand</code></td><td>Command: game mode selection</td></tr>
+  <tr><td><code>MakeMoveCommand</code></td><td>Command: gameId, player, cellIndex</td></tr>
+</table>
+
+<h2>5.4 DTO Mapping</h2>
+<p><span class="file-ref">Mappings/DtoMappingExtensions.cs</span> — 70 lines</p>
+
+<p>Pure extension methods converting domain aggregates into DTOs. No AutoMapper dependency — explicit hand-written mappings for full transparency and zero-reflection overhead.</p>
+
+<div class="callout success">
+  <strong>Zero Domain Leakage:</strong> DTOs expose only application-safe data. Internal domain collections, mementos, and lock mechanisms are never exposed.
+</div>
+
+
+<!-- ======================== 6. LLD — INFRASTRUCTURE LAYER ======================== -->
+<h1 id="s6" class="page-break">6. Low-Level Design (LLD) — Infrastructure Layer</h1>
+<p><span class="badge badge-infra">Infrastructure</span> — Project: <span class="file-ref">TicTacToe.Infrastructure</span></p>
+
+<h2>6.1 InMemoryGameRepository</h2>
+<p><span class="file-ref">Repositories/InMemoryGameRepository.cs</span> — 37 lines</p>
+
+<p>Thread-safe in-memory storage using <code>ConcurrentDictionary&lt;GameId, Game&gt;</code>. Implements <code>IGameRepository</code>.</p>
+
+<h3>Why ConcurrentDictionary?</h3>
+<ul>
+  <li>Lock-free reads for <code>GetByIdAsync</code></li>
+  <li>Atomic add-or-update for <code>SaveAsync</code></li>
+  <li>No external database dependency for the assessment scope</li>
+</ul>
+
+<h2>6.2 InMemoryScoreboardRepository</h2>
+<p><span class="file-ref">Repositories/InMemoryScoreboardRepository.cs</span> — 39 lines</p>
+
+<p>Holds a single <code>Scoreboard</code> instance for the session lifetime. Thread safety is delegated to the <code>Scoreboard</code> entity's internal locks. <code>SaveScoreboardAsync</code> is a no-op because the in-memory reference is mutated in place.</p>
+
+<h2>6.3 Persistence Evolution Path</h2>
+
+<div class="diagram-box">
+  Current:     ConcurrentDictionary (In-Process)
+      ↓
+  Near-term:   SQLite + EF Core
+      ↓
+  Production:  PostgreSQL / SQL Server + Optimistic Concurrency
+      ↓
+  Scale-out:   Distributed Cache (Redis) + Event Sourcing
+</div>
+
+<p>The <strong>Repository Pattern</strong> and <strong>Dependency Inversion</strong> ensure this evolution requires changes only in the Infrastructure project — Domain and Application layers remain untouched.</p>
+
+
+<!-- ======================== 7. LLD — API LAYER ======================== -->
+<h1 id="s7" class="page-break">7. Low-Level Design (LLD) — API / Presentation Layer</h1>
+<p><span class="badge badge-api">API</span> — Project: <span class="file-ref">TicTacToe.Api</span></p>
+
+<h2>7.1 Program.cs — Composition Root</h2>
+<p><span class="file-ref">Program.cs</span> — 111 lines</p>
+
+<p>The ASP.NET Core host acts as the <strong>Composition Root</strong> — all dependencies are wired here via the DI container.</p>
+
+<h3>DI Registrations</h3>
+<table>
+  <tr><th>Registration</th><th>Lifetime</th><th>Rationale</th></tr>
+  <tr><td><code>IGameRepository → InMemoryGameRepository</code></td><td>Singleton</td><td>In-memory state must persist across requests</td></tr>
+  <tr><td><code>IScoreboardRepository → InMemoryScoreboardRepository</code></td><td>Singleton</td><td>Session-level scoreboard</td></tr>
+  <tr><td><code>IComputerMoveStrategy → BasicComputerMoveStrategy</code></td><td>Singleton</td><td>Stateless, deterministic — safe to share</td></tr>
+  <tr><td><code>IGameService → GameService</code></td><td>Singleton</td><td>Internal <code>ConcurrentDictionary</code> of per-game locks must persist</td></tr>
+  <tr><td><code>IScoreboardService → ScoreboardService</code></td><td>Singleton</td><td>Consistent with repository lifetime</td></tr>
+</table>
+
+<h3>JSON Configuration</h3>
+<ul>
+  <li><strong>JsonStringEnumConverter:</strong> Serializes enums as strings (e.g., <code>"X"</code>, <code>"InProgress"</code>) for human-readable API payloads</li>
+  <li><strong>UnmappedMemberHandling.Disallow:</strong> Rejects unknown JSON properties — strict contract enforcement</li>
+  <li><strong>CamelCase naming policy:</strong> Aligns with JavaScript/TypeScript conventions</li>
+</ul>
+
+<h3>CORS Policy</h3>
+<p>Configuration-driven CORS allows the Angular frontend (<code>http://localhost:4200</code>) to call the API. Configurable via <code>appsettings.json</code>.</p>
+
+<h2>7.2 GamesController</h2>
+<p><span class="file-ref">Controllers/GamesController.cs</span> — 118 lines</p>
+
+<p>Thin REST controller with zero business logic — all logic delegated to <code>IGameService</code>.</p>
+
+<table>
+  <tr><th>Endpoint</th><th>Method</th><th>Action</th><th>Success</th><th>Errors</th></tr>
+  <tr><td><code>POST /api/games</code></td><td>CreateGame</td><td>Create new session</td><td>201 Created</td><td>400</td></tr>
+  <tr><td><code>GET /api/games/{gameId}</code></td><td>GetGame</td><td>Read state</td><td>200 OK</td><td>404</td></tr>
+  <tr><td><code>POST /api/games/{gameId}/moves</code></td><td>MakeMove</td><td>Execute move</td><td>200 OK</td><td>400, 404, 409</td></tr>
+  <tr><td><code>POST /api/games/{gameId}/undo</code></td><td>Undo</td><td>Revert move</td><td>200 OK</td><td>404, 409</td></tr>
+  <tr><td><code>POST /api/games/{gameId}/reset</code></td><td>ResetGame</td><td>Reset board</td><td>200 OK</td><td>404</td></tr>
+</table>
+
+<h2>7.3 ScoreboardController</h2>
+<p><span class="file-ref">Controllers/ScoreboardController.cs</span> — 51 lines</p>
+
+<table>
+  <tr><th>Endpoint</th><th>Method</th><th>Action</th></tr>
+  <tr><td><code>GET /api/scoreboard</code></td><td>GetScoreboard</td><td>Read counters (side-effect free)</td></tr>
+  <tr><td><code>POST /api/scoreboard/reset</code></td><td>ResetScoreboard</td><td>Reset counters to zero</td></tr>
+</table>
+
+<h2>7.4 ExceptionHandlingMiddleware</h2>
+<p><span class="file-ref">Middleware/ExceptionHandlingMiddleware.cs</span> — 170 lines</p>
+
+<p>Centralized middleware intercepting <strong>all unhandled exceptions</strong> and formatting them as <strong>RFC 7807 ProblemDetails</strong> JSON responses.</p>
+
+<h3>Exception → HTTP Mapping</h3>
+<table>
+  <tr><th>Exception</th><th>HTTP Status</th><th>Error Code</th></tr>
+  <tr><td><code>GameNotFoundException</code></td><td>404 Not Found</td><td><code>GAME_NOT_FOUND</code></td></tr>
+  <tr><td><code>InvalidCellIndexException</code></td><td>400 Bad Request</td><td><code>INVALID_CELL_INDEX</code></td></tr>
+  <tr><td><code>JsonException / BadHttpRequestException</code></td><td>400 Bad Request</td><td><code>MALFORMED_REQUEST</code></td></tr>
+  <tr><td><code>CellOccupiedException</code></td><td>409 Conflict</td><td><code>CELL_OCCUPIED</code></td></tr>
+  <tr><td><code>InvalidTurnException</code></td><td>409 Conflict</td><td><code>INVALID_TURN</code></td></tr>
+  <tr><td><code>GameAlreadyCompletedException</code></td><td>409 Conflict</td><td><code>GAME_ALREADY_COMPLETED</code></td></tr>
+  <tr><td><code>CannotUndoException</code></td><td>409 Conflict</td><td><code>CANNOT_UNDO</code></td></tr>
+  <tr><td>Any other exception</td><td>500 Internal Server Error</td><td><code>INTERNAL_SERVER_ERROR</code></td></tr>
+</table>
+
+<h3>Correlation &amp; Observability</h3>
+<ul>
+  <li>Supports <code>X-Correlation-Id</code> header propagation</li>
+  <li>Falls back to <code>Activity.Current.Id</code> or <code>HttpContext.TraceIdentifier</code></li>
+  <li>Structured logging: 5xx errors logged as <code>Error</code>; 4xx logged as <code>Information</code></li>
+  <li>Stack traces are <strong>never exposed</strong> to clients (sanitized error detail)</li>
+</ul>
+
+
+<!-- ======================== 8. LLD — FRONTEND ======================== -->
+<h1 id="s8" class="page-break">8. Low-Level Design (LLD) — Frontend (Angular 21)</h1>
+<p><span class="badge badge-ui">Frontend</span> — Project: <span class="file-ref">frontend/</span></p>
+
+<h2>8.1 Technology Choices</h2>
+<table>
+  <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Angular</td><td>21.2</td><td>Component framework with Standalone Components</td></tr>
+  <tr><td>TypeScript</td><td>5.9</td><td>Type-safe development</td></tr>
+  <tr><td>Angular Signals</td><td>Built-in</td><td>Reactive state management (no NgRx)</td></tr>
+  <tr><td>RxJS</td><td>7.8</td><td>HTTP observable streams</td></tr>
+  <tr><td>Vitest</td><td>4.0</td><td>Fast unit testing</td></tr>
+  <tr><td>HttpClient</td><td>Built-in</td><td>REST API communication</td></tr>
+</table>
+
+<h2>8.2 Component Architecture</h2>
+
+<div class="diagram-box">
+  App (Root Component)
+  ├── HeaderComponent           — Application title and branding
+  ├── ErrorAlertComponent       — ProblemDetails error display
+  └── main-layout
+      ├── game-column
+      │   ├── StatusBannerComponent  — Turn indicator, winner/draw display
+      │   ├── GameBoardComponent     — Interactive 3×3 grid
+      │   └── GameControlsComponent  — Undo, Reset, New Game, Mode selector
+      └── sidebar-column
+          ├── ScoreboardComponent    — X/O/Draw win counters
+          └── MoveHistoryComponent   — Chronological move log
+</div>
+
+<h3>Component Summary</h3>
+<table>
+  <tr><th>Component</th><th>Responsibility</th></tr>
+  <tr><td><code>App</code></td><td>Root shell; imports all child components; initializes GameFacade on boot</td></tr>
+  <tr><td><code>HeaderComponent</code></td><td>Static application header/branding</td></tr>
+  <tr><td><code>StatusBannerComponent</code></td><td>Displays current player turn, winner announcement, or draw message</td></tr>
+  <tr><td><code>GameBoardComponent</code></td><td>Renders 3×3 interactive grid; emits cell clicks; highlights winning cells</td></tr>
+  <tr><td><code>GameControlsComponent</code></td><td>Undo, Reset Game, New Game buttons; mode switching</td></tr>
+  <tr><td><code>ScoreboardComponent</code></td><td>Displays X wins, O wins, draws; reset scoreboard action</td></tr>
+  <tr><td><code>MoveHistoryComponent</code></td><td>Displays ordered move log with player and cell info</td></tr>
+  <tr><td><code>ErrorAlertComponent</code></td><td>Displays API errors as ProblemDetails alerts; dismiss functionality</td></tr>
+</table>
+
+<h2>8.3 Service Architecture</h2>
+
+<h3>8.3.1 GameFacade (State Management)</h3>
+<p><span class="file-ref">services/game.facade.ts</span> — 243 lines</p>
+
+<p>The <strong>GameFacade</strong> is the central state management service using <strong>Angular Signals</strong> for reactive, granular change detection.</p>
+
+<h4>Signal Architecture</h4>
+<table>
+  <tr><th>Signal</th><th>Type</th><th>Access</th></tr>
+  <tr><td><code>_gameState</code></td><td><code>Signal&lt;GameState | null&gt;</code></td><td>Private (writable)</td></tr>
+  <tr><td><code>_scoreboard</code></td><td><code>Signal&lt;Scoreboard | null&gt;</code></td><td>Private (writable)</td></tr>
+  <tr><td><code>_loading</code></td><td><code>Signal&lt;boolean&gt;</code></td><td>Private (writable)</td></tr>
+  <tr><td><code>_error</code></td><td><code>Signal&lt;ProblemDetails | null&gt;</code></td><td>Private (writable)</td></tr>
+  <tr><td><code>gameState</code></td><td><code>ReadonlySignal</code></td><td>Public (read-only)</td></tr>
+  <tr><td><code>board</code></td><td><code>Computed</code></td><td>Derived from gameState</td></tr>
+  <tr><td><code>currentPlayer</code></td><td><code>Computed</code></td><td>Derived from gameState</td></tr>
+  <tr><td><code>canUndo</code></td><td><code>Computed</code></td><td>Derived from gameState + loading</td></tr>
+  <tr><td><code>isGameOver</code></td><td><code>Computed</code></td><td>Derived from status</td></tr>
+</table>
+
+<h4>Why Signals Instead of NgRx?</h4>
+<ul>
+  <li><strong>Proportional Complexity:</strong> NgRx introduces actions, reducers, effects, selectors — massive overhead for a single-page game</li>
+  <li><strong>Performance:</strong> Signals provide fine-grained reactivity without zone.js overhead</li>
+  <li><strong>Simplicity:</strong> Private writable / public readonly pattern provides encapsulation without boilerplate</li>
+  <li><strong>Angular-native:</strong> First-party Angular feature, no third-party dependency</li>
+</ul>
+
+<h3>8.3.2 GameApiService</h3>
+<p><span class="file-ref">services/game-api.service.ts</span> — 36 lines</p>
+
+<p>Thin HTTP client wrapping all REST API calls via Angular <code>HttpClient</code>. Returns <code>Observable&lt;GameState&gt;</code> for each operation.</p>
+
+<h3>8.3.3 ScoreboardApiService</h3>
+<p><span class="file-ref">services/scoreboard-api.service.ts</span> — 22 lines</p>
+
+<p>HTTP client for scoreboard GET and reset endpoints.</p>
+
+<h3>8.3.4 API Configuration</h3>
+<p><span class="file-ref">services/api-config.ts</span> — 7 lines</p>
+
+<p>Uses Angular <code>InjectionToken</code> to provide the API base URL (<code>http://localhost:5000</code>), making it configurable for different environments.</p>
+
+<h2>8.4 TypeScript Models</h2>
+<p><span class="file-ref">models/game.models.ts</span> — 49 lines</p>
+
+<p>Strongly-typed interfaces and type aliases mirroring the backend DTOs: <code>GameState</code>, <code>Scoreboard</code>, <code>MoveDto</code>, <code>Player</code>, <code>GameMode</code>, <code>GameStatus</code>, <code>ProblemDetails</code>.</p>
+
+
+<!-- ======================== 9. DESIGN PATTERNS ======================== -->
+<h1 id="s9" class="page-break">9. Design Patterns &amp; Rationale</h1>
+
+<h2>9.1 Memento Pattern (GoF)</h2>
+<p><span class="badge badge-pattern">Behavioral</span></p>
+
+<table>
+  <tr><th>Role</th><th>Implementation</th><th>File</th></tr>
+  <tr><td><strong>Originator</strong></td><td><code>Game</code> aggregate</td><td><code>Aggregates/Game.cs</code></td></tr>
+  <tr><td><strong>Memento</strong></td><td><code>GameMemento</code> (internal record)</td><td><code>Mementos/GameMemento.cs</code></td></tr>
+  <tr><td><strong>Caretaker</strong></td><td><code>Game._undoStack</code> (Stack&lt;GameMemento&gt;)</td><td><code>Aggregates/Game.cs</code></td></tr>
+</table>
+
+<h3>Why Memento for Undo?</h3>
+<ul>
+  <li><strong>Accuracy:</strong> Snapshot-based restore guarantees exact previous state — no heuristic reversal bugs</li>
+  <li><strong>Atomicity:</strong> In Computer mode, one snapshot captures the state before both human and computer moves — single undo reverts the entire pair</li>
+  <li><strong>Encapsulation:</strong> <code>GameMemento</code> is <code>internal</code> — external layers cannot tamper with snapshots</li>
+  <li><strong>Alternative Rejected:</strong> Event Sourcing would add unnecessary complexity for a 3×3 board</li>
+</ul>
+
+<h2>9.2 Strategy Pattern (GoF)</h2>
+<p><span class="badge badge-pattern">Behavioral</span></p>
+
+<table>
+  <tr><th>Role</th><th>Implementation</th><th>File</th></tr>
+  <tr><td><strong>Strategy Interface</strong></td><td><code>IComputerMoveStrategy</code></td><td><code>Services/IComputerMoveStrategy.cs</code></td></tr>
+  <tr><td><strong>Concrete Strategy</strong></td><td><code>BasicComputerMoveStrategy</code></td><td><code>Services/BasicComputerMoveStrategy.cs</code></td></tr>
+  <tr><td><strong>Context</strong></td><td><code>Game.PlayComputerMove()</code></td><td><code>Aggregates/Game.cs</code></td></tr>
+</table>
+
+<h3>Why Strategy for AI?</h3>
+<ul>
+  <li><strong>Open/Closed Principle:</strong> New AI algorithms (Minimax, ML-based) can be added by implementing the interface — no modification to Game or GameService</li>
+  <li><strong>Testability:</strong> Strategy can be unit-tested independently with mock boards</li>
+  <li><strong>DI-Friendly:</strong> Injected via constructor in GameService; swappable at runtime or via configuration</li>
+</ul>
+
+<h2>9.3 Repository Pattern</h2>
+<p><span class="badge badge-pattern">Structural</span></p>
+
+<h3>Why Repository?</h3>
+<ul>
+  <li><strong>Dependency Inversion:</strong> Domain defines interfaces; Infrastructure provides implementations</li>
+  <li><strong>Persistence Ignorance:</strong> Domain and Application layers have zero knowledge of ConcurrentDictionary</li>
+  <li><strong>Swappability:</strong> Can swap to EF Core, Dapper, or Redis without touching domain code</li>
+  <li><strong>Testability:</strong> Easy to mock repositories for application service tests</li>
+</ul>
+
+<h2>9.4 Facade Pattern</h2>
+<p><span class="badge badge-pattern">Structural</span></p>
+
+<p>The frontend <code>GameFacade</code> provides a simplified interface over multiple API services and state signals. Components interact with a single facade instead of managing API calls, error handling, and state synchronization individually.</p>
+
+<h2>9.5 Factory Method Pattern</h2>
+<p><span class="badge badge-pattern">Creational</span></p>
+
+<p><code>Game.Create(GameMode)</code> is a static factory method ensuring proper initialization of all aggregate state with a fresh GUID and default values.</p>
+
+
+<!-- ======================== 10. API CONTRACT ======================== -->
+<h1 id="s10" class="page-break">10. API Contract &amp; Error Handling</h1>
+
+<h2>10.1 REST Endpoints</h2>
+
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Purpose</th><th>Request Body</th><th>Response</th></tr>
+  <tr><td><code>POST</code></td><td><code>/api/games</code></td><td>Create game</td><td><code>{ mode: "TwoPlayer" }</code></td><td>201 + GameStateDto</td></tr>
+  <tr><td><code>GET</code></td><td><code>/api/games/{gameId}</code></td><td>Get state</td><td>—</td><td>200 + GameStateDto</td></tr>
+  <tr><td><code>POST</code></td><td><code>/api/games/{gameId}/moves</code></td><td>Make move</td><td><code>{ player: "X", cellIndex: 4 }</code></td><td>200 + GameStateDto</td></tr>
+  <tr><td><code>POST</code></td><td><code>/api/games/{gameId}/undo</code></td><td>Undo move</td><td><code>{}</code></td><td>200 + GameStateDto</td></tr>
+  <tr><td><code>POST</code></td><td><code>/api/games/{gameId}/reset</code></td><td>Reset game</td><td><code>{}</code></td><td>200 + GameStateDto</td></tr>
+  <tr><td><code>GET</code></td><td><code>/api/scoreboard</code></td><td>Get scores</td><td>—</td><td>200 + ScoreboardDto</td></tr>
+  <tr><td><code>POST</code></td><td><code>/api/scoreboard/reset</code></td><td>Reset scores</td><td><code>{}</code></td><td>200 + ScoreboardDto</td></tr>
+</table>
+
+<h2>10.2 Cell Addressing</h2>
+<p>The API uses a <strong>single canonical addressing scheme</strong>: <code>cellIndex</code> (integer 0–8).</p>
+<pre><code>Board Layout:
+  0 | 1 | 2
+  ---------
+  3 | 4 | 5
+  ---------
+  6 | 7 | 8
+
+Frontend derivation:
+  row = Math.floor(cellIndex / 3)
+  col = cellIndex % 3</code></pre>
+
+<h2>10.3 Error Response Format (RFC 7807)</h2>
+<pre><code>{
+  "type": "https://api.tictactoe.com/errors/cell-occupied",
+  "title": "Cell Occupied",
+  "status": 409,
+  "detail": "Cell 4 is already occupied by Player X.",
+  "instance": "/api/games/7d.../moves",
+  "code": "CELL_OCCUPIED",
+  "traceId": "00-abc123..."
+}</code></pre>
+
+<h2>10.4 API Invariants</h2>
+<ol>
+  <li>Client cannot supply authoritative board state</li>
+  <li>Client cannot force current player</li>
+  <li>Client cannot force winner/status</li>
+  <li>Client cannot mutate scoreboard through game commands</li>
+  <li>GET has no side effects</li>
+  <li><code>cellIndex</code> is the sole cell-addressing contract</li>
+  <li>Every successful command returns sufficient state for UI rendering</li>
+</ol>
+
+
+<!-- ======================== 11. CONCURRENCY ======================== -->
+<h1 id="s11" class="page-break">11. Concurrency &amp; Thread Safety</h1>
+
+<table>
+  <tr><th>Component</th><th>Mechanism</th><th>Scope</th></tr>
+  <tr><td>GameService</td><td><code>ConcurrentDictionary&lt;GameId, SemaphoreSlim&gt;</code></td><td>Per-game mutual exclusion for command serialization</td></tr>
+  <tr><td>InMemoryGameRepository</td><td><code>ConcurrentDictionary&lt;GameId, Game&gt;</code></td><td>Thread-safe reads/writes</td></tr>
+  <tr><td>Scoreboard Entity</td><td><code>lock (_syncLock)</code></td><td>Atomic counter increments</td></tr>
+  <tr><td>InMemoryScoreboardRepository</td><td>Delegates to Scoreboard's locks</td><td>—</td></tr>
+</table>
+
+<div class="callout warning">
+  <strong>Architectural Note:</strong> Per-game locks are retained for the process lifetime. This is an explicit limitation of the in-memory architecture — lock cleanup would be needed if persistent storage or game expiry were introduced.
+</div>
+
+
+<!-- ======================== 12. DATA FLOW ======================== -->
+<h1 id="s12" class="page-break">12. Data Flow — End-to-End Sequence</h1>
+
+<h2>12.1 Make Move (Two-Player Mode)</h2>
+
+<div class="diagram-box">
+  [1] User clicks cell 4
+  [2] GameBoardComponent → GameFacade.playMove(4)
+  [3] GameFacade validates (loading? game over? occupied?)
+  [4] GameApiService.makeMove(gameId, "X", 4) → HTTP POST
+  [5] GamesController.MakeMove() → MakeMoveCommand
+  [6] GameService.MakeMoveAsync() — acquires per-game SemaphoreSlim
+  [7] IGameRepository.GetByIdAsync(gameId) — loads Game aggregate
+  [8] Game.MakeMove(Player.X, CellIndex(4))
+      [8a] Validates: InProgress? Correct player? Cell empty?
+      [8b] Captures GameMemento → pushes to _undoStack
+      [8c] Board.PlaceMark(CellIndex(4), Player.X)
+      [8d] WinDetector.CheckWin(Board) → WinResult
+      [8e] If Won: Status=Won, Winner=X, WinningCells=[0,1,2]
+      [8f] If Draw: Status=Draw
+      [8g] Else: CurrentPlayer = Player.O
+  [9] If terminal transition: Scoreboard.RecordWin/RecordDraw()
+  [10] IGameRepository.SaveAsync(game) — persist
+  [11] DtoMappingExtensions.ToDto() — map to GameStateDto
+  [12] Release SemaphoreSlim
+  [13] HTTP 200 JSON → GameFacade._gameState.set(updatedState)
+  [14] Angular Signals → all computed signals update → UI re-renders
+</div>
+
+<h2>12.2 Make Move (Computer Mode)</h2>
+
+<div class="diagram-box">
+  [1]-[7] Same as Two-Player
+  [8] Game.ExecuteTurn(humanMove, strategy)
+      [8a] Game.MakeMove(Player.X, humanMove)  — human move
+      [8b] If game ended (X won or Draw): return (humanMove, null)
+      [8c] Game.PlayComputerMove(strategy)
+           [8c-i]  strategy.SelectMove(Board) → computer cell
+           [8c-ii] Game.MakeMove(Player.O, computerCell)
+      [8d] Return (humanMove, computerCell)
+  [9]-[14] Same as Two-Player
+</div>
+
+
+<!-- ======================== 13. TESTING ======================== -->
+<h1 id="s13" class="page-break">13. Testing Strategy</h1>
+
+<h2>13.1 Testing Pyramid</h2>
+
+<div class="diagram-box">
+              ┌────────────┐
+              │    E2E     │  ← Few, high-value scenarios
+              ├────────────┤
+              │Integration │  ← API smoke tests, WebApplicationFactory
+              ├────────────┤
+              │   Unit     │  ← Majority of tests (Domain + Application)
+              └────────────┘
+</div>
+
+<h2>13.2 Test Coverage Matrix</h2>
+
+<table>
+  <tr><th>Layer</th><th>Test Category</th><th>Examples</th></tr>
+  <tr><td>Domain</td><td>Game Aggregate</td><td>Valid/invalid moves, turn switching, win/draw detection, undo, reset</td></tr>
+  <tr><td>Domain</td><td>WinDetector</td><td>All 8 winning lines, no-win scenarios, null board</td></tr>
+  <tr><td>Domain</td><td>BasicComputerMoveStrategy</td><td>5-tier priority hierarchy, edge cases, full board</td></tr>
+  <tr><td>Domain</td><td>Board Entity</td><td>PlaceMark, IsOccupied, IsFull, Clone</td></tr>
+  <tr><td>Domain</td><td>Value Objects</td><td>CellIndex bounds, GameId empty guard, Move invariant</td></tr>
+  <tr><td>Domain</td><td>Scoreboard</td><td>RecordWin, RecordDraw, Reset, thread safety</td></tr>
+  <tr><td>Application</td><td>GameService</td><td>Create, move, undo, reset, terminal transition detection</td></tr>
+  <tr><td>Application</td><td>ScoreboardService</td><td>Get, reset</td></tr>
+  <tr><td>Infrastructure</td><td>Repositories</td><td>Save, retrieve, not-found</td></tr>
+  <tr><td>API</td><td>Integration</td><td>Health endpoint, controller routing, HTTP status codes</td></tr>
+  <tr><td>Frontend</td><td>Component</td><td>Board rendering, controls, scoreboard display</td></tr>
+  <tr><td>Frontend</td><td>Facade</td><td>State management, error handling, loading states</td></tr>
+  <tr><td>Frontend</td><td>Services</td><td>API service HTTP calls</td></tr>
+</table>
+
+<h2>13.3 Test Frameworks</h2>
+<table>
+  <tr><th>Layer</th><th>Framework</th><th>Runner</th></tr>
+  <tr><td>Backend</td><td>xUnit + FluentAssertions + NSubstitute</td><td><code>dotnet test</code></td></tr>
+  <tr><td>Frontend</td><td>Vitest + Angular Testing Library</td><td><code>npm test --prefix frontend</code></td></tr>
+</table>
+
+
+<!-- ======================== 14. NFR ======================== -->
+<h1 id="s14" class="page-break">14. Non-Functional Requirements</h1>
+
+<table>
+  <tr><th>NFR</th><th>Priority</th><th>Implementation</th></tr>
+  <tr><td>Correctness</td><td>Critical</td><td>Backend-authoritative; every state transition deterministic; scoreboard idempotent</td></tr>
+  <tr><td>Testability</td><td>Critical</td><td>Domain testable without HTTP; 238 automated tests; 100% critical path coverage</td></tr>
+  <tr><td>Maintainability</td><td>High</td><td>SOLID principles; single responsibility; DTO/domain separation; no duplicated logic</td></tr>
+  <tr><td>Performance</td><td>Medium</td><td>O(1) move operations on 9-cell board; in-memory storage; no blocking I/O</td></tr>
+  <tr><td>Security</td><td>High</td><td>Server-side validation; no client trust; CORS restriction; sanitized errors; no stack traces</td></tr>
+  <tr><td>API Consistency</td><td>High</td><td>RFC 7807 ProblemDetails; consistent status codes; trace/correlation IDs</td></tr>
+  <tr><td>Accessibility</td><td>Medium</td><td>Semantic HTML; ARIA labels; keyboard navigation; WCAG 2.1 AA target</td></tr>
+  <tr><td>Observability</td><td>Medium</td><td>Structured logging; trace IDs; correlation header support</td></tr>
+  <tr><td>Deployment</td><td>High</td><td>Two-command startup (dotnet run + npm start); documented prerequisites</td></tr>
+</table>
+
+
+<!-- ======================== 15. TECH STACK ======================== -->
+<h1 id="s15" class="page-break">15. Technology Stack Summary</h1>
+
+<h2>15.1 Backend</h2>
+<table>
+  <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>.NET SDK</td><td>8.0</td><td>Runtime and build toolchain</td></tr>
+  <tr><td>ASP.NET Core</td><td>8.0</td><td>Web API framework</td></tr>
+  <tr><td>C#</td><td>12</td><td>Programming language</td></tr>
+  <tr><td>System.Text.Json</td><td>Built-in</td><td>JSON serialization (no Newtonsoft)</td></tr>
+  <tr><td>Swagger / OpenAPI</td><td>Built-in</td><td>Interactive API documentation</td></tr>
+  <tr><td>xUnit</td><td>Latest</td><td>Test framework</td></tr>
+  <tr><td>ConcurrentDictionary</td><td>Built-in</td><td>Thread-safe in-memory storage</td></tr>
+</table>
+
+<h2>15.2 Frontend</h2>
+<table>
+  <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Angular</td><td>21.2</td><td>SPA framework (Standalone Components)</td></tr>
+  <tr><td>TypeScript</td><td>5.9</td><td>Type-safe development</td></tr>
+  <tr><td>Angular Signals</td><td>Built-in</td><td>Reactive state management</td></tr>
+  <tr><td>RxJS</td><td>7.8</td><td>Observable HTTP streams</td></tr>
+  <tr><td>Vitest</td><td>4.0</td><td>Unit testing</td></tr>
+  <tr><td>Angular CLI</td><td>21.2</td><td>Build and development tooling</td></tr>
+</table>
+
+
+<!-- ======================== 16. FUTURE EVOLUTION ======================== -->
+<h1 id="s16" class="page-break">16. Future Evolution &amp; Scalability</h1>
+
+<h2>16.1 Evolution Path</h2>
+
+<div class="diagram-box">
+  CURRENT (Assessment)
+  ┌─────────────────────────────────────────────────────┐
+  │  Angular SPA → REST API → In-Memory State           │
+  └─────────────────────────────────────────────────────┘
+
+  NEAR-TERM (Production-Ready)
+  ┌─────────────────────────────────────────────────────┐
+  │  Angular SPA → REST API → SQLite/PostgreSQL          │
+  │  + Authentication + Rate Limiting + Docker            │
+  └─────────────────────────────────────────────────────┘
+
+  SCALE-OUT (Enterprise)
+  ┌─────────────────────────────────────────────────────┐
+  │  Angular SPA → API Gateway → Game Microservice       │
+  │                            → Scoreboard Service      │
+  │                → Redis Cache → PostgreSQL             │
+  │                → Message Broker (events)              │
+  │                → Observability Stack                  │
+  │                → Kubernetes Orchestration             │
+  └─────────────────────────────────────────────────────┘
+</div>
+
+<h2>16.2 Known Technical Debt</h2>
+
+<table>
+  <tr><th>ID</th><th>Debt Item</th><th>Mitigation Path</th></tr>
+  <tr><td>TD-001</td><td>In-memory store not multi-instance safe</td><td>Replace with database + optimistic concurrency</td></tr>
+  <tr><td>TD-002</td><td>No authentication</td><td>Add JWT/OAuth2 when multi-user support needed</td></tr>
+  <tr><td>TD-003</td><td>No WebSocket real-time updates</td><td>Add SignalR for live multi-player</td></tr>
+  <tr><td>TD-004</td><td>Per-game lock lifecycle (never cleaned)</td><td>Add TTL-based eviction or bounded lock pool</td></tr>
+  <tr><td>TD-005</td><td>No API versioning</td><td>Add URL or header-based versioning</td></tr>
+</table>
+
+<h2>16.3 Extensibility Points</h2>
+<ul>
+  <li><strong>AI Strategy:</strong> Implement <code>IComputerMoveStrategy</code> for Minimax, Alpha-Beta, or ML-based opponents</li>
+  <li><strong>Board Size:</strong> Parameterize <code>Board.CellCount</code> for 4×4, 5×5 variants</li>
+  <li><strong>Multiplayer:</strong> Add WebSocket (SignalR) layer for real-time remote play</li>
+  <li><strong>Persistence:</strong> Implement EF Core repositories behind existing interfaces</li>
+  <li><strong>Event Sourcing:</strong> Replace memento with event store for full audit trail</li>
+  <li><strong>Authentication:</strong> Add identity provider integration without domain changes</li>
+</ul>
+
+<!-- ======================== 17. SQLITE MIGRATION ======================== -->
+<h1 id="s17" class="page-break">17. Appendix A — SQLite Migration: Architecture &amp; Implementation Changes</h1>
+
+<p>This section provides a comprehensive guide on <strong>every architecture and implementation change</strong> required to replace the current in-memory <code>ConcurrentDictionary</code> storage with <strong>SQLite via Entity Framework Core</strong>. Because the system was designed with the Repository Pattern and Dependency Inversion, the <strong>Domain and Application layers remain completely untouched</strong> — changes are isolated to Infrastructure and the API composition root.</p>
+
+<div class="callout success">
+  <strong>Key Principle:</strong> The existing <code>IGameRepository</code> and <code>IScoreboardRepository</code> interfaces in the Domain layer act as the seam. We implement new classes behind these interfaces — the Domain, Application, and Frontend layers require <strong>zero modifications</strong>.
+</div>
+
+<h2>17.1 Architecture Impact Overview</h2>
+
+<div class="diagram-box">
+  BEFORE (In-Memory)
+  ┌──────────────────────────────────────────────────────┐
+  │  API Layer                                           │
+  │    └─→ Application Layer                             │
+  │          └─→ Domain Layer                            │
+  │                └─→ IGameRepository (interface)        │
+  │                └─→ IScoreboardRepository (interface)  │
+  │                                                      │
+  │  Infrastructure Layer                                │
+  │    └─→ InMemoryGameRepository (ConcurrentDictionary) │
+  │    └─→ InMemoryScoreboardRepository (singleton obj)  │
+  └──────────────────────────────────────────────────────┘
+
+  AFTER (SQLite + EF Core)
+  ┌──────────────────────────────────────────────────────┐
+  │  API Layer                                           │
+  │    └─→ Application Layer         ✅ NO CHANGE        │
+  │          └─→ Domain Layer        ✅ NO CHANGE        │
+  │                └─→ IGameRepository (interface)        │
+  │                └─→ IScoreboardRepository (interface)  │
+  │                                                      │
+  │  Infrastructure Layer            ⚠️  CHANGES HERE    │
+  │    └─→ TicTacToeDbContext        [NEW]                │
+  │    └─→ GameEntity                [NEW] (EF entity)   │
+  │    └─→ MoveEntity                [NEW] (EF entity)   │
+  │    └─→ ScoreboardEntity          [NEW] (EF entity)   │
+  │    └─→ SqliteGameRepository      [NEW]                │
+  │    └─→ SqliteScoreboardRepository[NEW]                │
+  │    └─→ EF Migrations             [NEW]                │
+  │                                                      │
+  │  API Layer (Program.cs only)     ⚠️  DI WIRING       │
+  │    └─→ AddDbContext registration [MODIFY]             │
+  │    └─→ Repository binding swap   [MODIFY]             │
+  │    └─→ Service lifetime change   [MODIFY]             │
+  └──────────────────────────────────────────────────────┘
+</div>
+
+<h2>17.2 Layer-by-Layer Impact Analysis</h2>
+
+<table>
+  <tr><th>Layer</th><th>Impact</th><th>Changes Required</th></tr>
+  <tr>
+    <td><span class="badge badge-domain">Domain</span></td>
+    <td style="color: #10b981; font-weight: 700;">✅ NONE</td>
+    <td>Zero changes. All aggregates, entities, value objects, services, exceptions, and repository <em>interfaces</em> remain identical.</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-app">Application</span></td>
+    <td style="color: #10b981; font-weight: 700;">✅ NONE</td>
+    <td>Zero changes. GameService, ScoreboardService, DTOs, mappings, and commands are persistence-agnostic.</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-infra">Infrastructure</span></td>
+    <td style="color: #e94560; font-weight: 700;">⚠️ MAJOR</td>
+    <td>New DbContext, EF entity models, new repository implementations, migrations</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-api">API (Program.cs)</span></td>
+    <td style="color: #f59e0b; font-weight: 700;">⚠️ MINOR</td>
+    <td>DI registration changes only — swap repository bindings, add DbContext, change service lifetimes</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-ui">Frontend</span></td>
+    <td style="color: #10b981; font-weight: 700;">✅ NONE</td>
+    <td>Zero changes. Communicates via the same REST API contract.</td>
+  </tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>17.3 New NuGet Dependencies</h2>
+
+<p>Add to <code>TicTacToe.Infrastructure.csproj</code>:</p>
+
+<pre><code>&lt;ItemGroup&gt;
+  &lt;PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.*" /&gt;
+  &lt;PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.*" /&gt;
+&lt;/ItemGroup&gt;</code></pre>
+
+<div class="callout">
+  <strong>Why EF Core + SQLite?</strong>
+  <ul>
+    <li>Zero-configuration embedded database — no server process required</li>
+    <li>File-based persistence — survives process restarts</li>
+    <li>EF Core provides migrations, LINQ queries, and change tracking</li>
+    <li>Same EF Core code migrates to PostgreSQL/SQL Server by swapping the provider</li>
+  </ul>
+</div>
+
+<hr class="section-divider">
+
+<h2>17.4 Database Schema Design</h2>
+
+<h3>17.4.1 Entity-Relationship Diagram</h3>
+
+<div class="diagram-box">
+  ┌──────────────────────┐       ┌──────────────────────┐
+  │       Games          │       │       Moves          │
+  ├──────────────────────┤       ├──────────────────────┤
+  │ Id         GUID (PK) │──┐    │ Id         INT (PK)  │
+  │ Mode       INT        │  │    │ GameId     GUID (FK) │
+  │ Status     INT        │  │    │ MoveNumber INT       │
+  │ CurrentPlayer INT     │  └───▶│ Player     INT       │
+  │ Winner     INT?       │       │ CellIndex  INT       │
+  │ WinningCells TEXT     │       └──────────────────────┘
+  │ Board      TEXT       │
+  │ UndoStack  TEXT       │
+  │ Version    INT        │  ← Optimistic concurrency
+  │ CreatedAt  DATETIME   │
+  │ UpdatedAt  DATETIME   │
+  └──────────────────────┘
+
+  ┌──────────────────────┐
+  │     Scoreboard       │
+  ├──────────────────────┤
+  │ Id         INT (PK)  │  ← Always row ID = 1 (singleton)
+  │ XWins      INT       │
+  │ OWins      INT       │
+  │ Draws      INT       │
+  │ Version    INT        │  ← Optimistic concurrency
+  └──────────────────────┘
+</div>
+
+<h3>17.4.2 Key Schema Decisions</h3>
+
+<table>
+  <tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr>
+  <tr><td>Board storage</td><td>JSON-serialized <code>TEXT</code> column</td><td>Flat 9-cell array serializes naturally; avoids 9 separate columns; queryable via JSON functions if needed</td></tr>
+  <tr><td>WinningCells</td><td>JSON-serialized <code>TEXT</code></td><td>Variable-length int array (0–3 values); JSON is simplest</td></tr>
+  <tr><td>UndoStack</td><td>JSON-serialized <code>TEXT</code></td><td>Stack of memento snapshots; complex object graph best stored as JSON blob</td></tr>
+  <tr><td>Moves table</td><td>Separate table with FK</td><td>Supports individual move queries, history pagination, and relational integrity</td></tr>
+  <tr><td>Enums</td><td>Stored as <code>INT</code></td><td>Compact storage, EF Core default; string conversion optional</td></tr>
+  <tr><td>Concurrency</td><td><code>Version</code> column (row version)</td><td>Optimistic concurrency — EF Core throws <code>DbUpdateConcurrencyException</code> on stale writes</td></tr>
+  <tr><td>Scoreboard</td><td>Single-row table (ID=1)</td><td>Session-level singleton; simpler than key-value store</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>17.5 New Infrastructure Files — Detailed Implementation</h2>
+
+<h3>17.5.1 EF Entity Models (Persistence Models)</h3>
+
+<p><span class="file-ref">[NEW] Persistence/Entities/GameEntity.cs</span></p>
+
+<div class="callout warning">
+  <strong>Critical Design Decision:</strong> These are <em>EF persistence models</em>, NOT domain entities. The domain <code>Game</code> aggregate and the EF <code>GameEntity</code> are completely separate classes. The repository is responsible for mapping between them (Aggregate ↔ Persistence Model). This preserves persistence ignorance in the domain.
+</div>
+
+<pre><code>namespace TicTacToe.Infrastructure.Persistence.Entities;
+
+public class GameEntity
+{
+    public Guid Id { get; set; }
+    public int Mode { get; set; }           // GameMode enum value
+    public int Status { get; set; }         // GameStatus enum value
+    public int CurrentPlayer { get; set; }  // Player enum value
+    public int? Winner { get; set; }        // Player? enum value
+    public string WinningCells { get; set; } = "[]"; // JSON array
+    public string Board { get; set; } = ""; // JSON array of nullable ints
+    public string UndoStack { get; set; } = "[]"; // JSON serialized mementos
+    public int Version { get; set; }        // Optimistic concurrency token
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+
+    public List&lt;MoveEntity&gt; Moves { get; set; } = new();
+}
+
+public class MoveEntity
+{
+    public int Id { get; set; }
+    public Guid GameId { get; set; }
+    public int MoveNumber { get; set; }
+    public int Player { get; set; }     // Player enum value
+    public int CellIndex { get; set; }
+
+    public GameEntity Game { get; set; } = null!;
+}
+
+public class ScoreboardEntity
+{
+    public int Id { get; set; }  // Always 1
+    public int XWins { get; set; }
+    public int OWins { get; set; }
+    public int Draws { get; set; }
+    public int Version { get; set; }  // Optimistic concurrency token
+}</code></pre>
+
+<h3>17.5.2 DbContext</h3>
+
+<p><span class="file-ref">[NEW] Persistence/TicTacToeDbContext.cs</span></p>
+
+<pre><code>namespace TicTacToe.Infrastructure.Persistence;
+
+using Microsoft.EntityFrameworkCore;
+using TicTacToe.Infrastructure.Persistence.Entities;
+
+public class TicTacToeDbContext : DbContext
+{
+    public DbSet&lt;GameEntity&gt; Games =&gt; Set&lt;GameEntity&gt;();
+    public DbSet&lt;MoveEntity&gt; Moves =&gt; Set&lt;MoveEntity&gt;();
+    public DbSet&lt;ScoreboardEntity&gt; Scoreboards =&gt; Set&lt;ScoreboardEntity&gt;();
+
+    public TicTacToeDbContext(DbContextOptions&lt;TicTacToeDbContext&gt; options)
+        : base(options) { }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Game entity configuration
+        modelBuilder.Entity&lt;GameEntity&gt;(entity =&gt;
+        {
+            entity.HasKey(e =&gt; e.Id);
+            entity.Property(e =&gt; e.Id).ValueGeneratedNever();
+            entity.Property(e =&gt; e.Version).IsConcurrencyToken();
+            entity.Property(e =&gt; e.Board).IsRequired();
+            entity.Property(e =&gt; e.UndoStack).IsRequired();
+            entity.Property(e =&gt; e.WinningCells).IsRequired();
+            entity.HasMany(e =&gt; e.Moves)
+                  .WithOne(m =&gt; m.Game)
+                  .HasForeignKey(m =&gt; m.GameId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Move entity configuration
+        modelBuilder.Entity&lt;MoveEntity&gt;(entity =&gt;
+        {
+            entity.HasKey(e =&gt; e.Id);
+            entity.HasIndex(e =&gt; new { e.GameId, e.MoveNumber }).IsUnique();
+        });
+
+        // Scoreboard entity configuration (singleton row)
+        modelBuilder.Entity&lt;ScoreboardEntity&gt;(entity =&gt;
+        {
+            entity.HasKey(e =&gt; e.Id);
+            entity.Property(e =&gt; e.Version).IsConcurrencyToken();
+            // Seed the singleton row
+            entity.HasData(new ScoreboardEntity
+            {
+                Id = 1, XWins = 0, OWins = 0, Draws = 0, Version = 0
+            });
+        });
+    }
+}</code></pre>
+
+<h3>17.5.3 SqliteGameRepository</h3>
+
+<p><span class="file-ref">[NEW] Repositories/SqliteGameRepository.cs</span></p>
+
+<p>This is the most complex new file. It must:</p>
+<ol>
+  <li><strong>Hydrate (Load):</strong> Read <code>GameEntity</code> + <code>MoveEntity</code> rows from SQLite → reconstruct the domain <code>Game</code> aggregate with full internal state (board, history, undo stack)</li>
+  <li><strong>Dehydrate (Save):</strong> Decompose the domain <code>Game</code> aggregate → flatten into <code>GameEntity</code> + <code>MoveEntity</code> rows → persist via EF Core</li>
+  <li><strong>Handle Concurrency:</strong> Use the <code>Version</code> column as an optimistic concurrency token</li>
+</ol>
+
+<pre><code>namespace TicTacToe.Infrastructure.Repositories;
+
+public sealed class SqliteGameRepository : IGameRepository
+{
+    private readonly TicTacToeDbContext _db;
+
+    public SqliteGameRepository(TicTacToeDbContext db)
+    {
+        _db = db ?? throw new ArgumentNullException(nameof(db));
+    }
+
+    public async Task&lt;Game?&gt; GetByIdAsync(
+        GameId gameId, CancellationToken ct = default)
+    {
+        var entity = await _db.Games
+            .Include(g =&gt; g.Moves.OrderBy(m =&gt; m.MoveNumber))
+            .FirstOrDefaultAsync(g =&gt; g.Id == gameId.Value, ct);
+
+        if (entity == null) return null;
+
+        return ReconstructAggregate(entity);
+    }
+
+    public async Task SaveAsync(
+        Game game, CancellationToken ct = default)
+    {
+        var existing = await _db.Games
+            .Include(g =&gt; g.Moves)
+            .FirstOrDefaultAsync(g =&gt; g.Id == game.Id.Value, ct);
+
+        if (existing == null)
+        {
+            var entity = DehydrateToEntity(game);
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTime.UtcNow;
+            _db.Games.Add(entity);
+        }
+        else
+        {
+            UpdateEntity(existing, game);
+            existing.UpdatedAt = DateTime.UtcNow;
+            existing.Version++;  // Bump concurrency token
+        }
+
+        await _db.SaveChangesAsync(ct);
+    }
+
+    // --- Private mapping methods ---
+    // ReconstructAggregate(): Entity → Domain Aggregate
+    // DehydrateToEntity():   Domain Aggregate → Entity
+    // UpdateEntity():        Sync entity from aggregate
+}</code></pre>
+
+<h3>17.5.4 Aggregate Reconstitution Challenge</h3>
+
+<div class="callout warning">
+  <strong>The Hardest Part:</strong> The current <code>Game</code> aggregate has a private constructor and private fields (<code>_undoStack</code>, <code>_moveHistory</code>). Reconstituting it from a database row requires one of these approaches:
+</div>
+
+<table>
+  <tr><th>Approach</th><th>Pros</th><th>Cons</th><th>Recommendation</th></tr>
+  <tr>
+    <td><strong>A. Internal reconstitution constructor</strong></td>
+    <td>Clean, explicit, preserves encapsulation</td>
+    <td>Adds an <code>internal</code> constructor to Game</td>
+    <td style="color: #10b981; font-weight: 700;">✅ Recommended</td>
+  </tr>
+  <tr>
+    <td>B. Reflection-based hydration</td>
+    <td>No domain changes</td>
+    <td>Fragile, breaks on rename, hard to debug</td>
+    <td>❌ Avoid</td>
+  </tr>
+  <tr>
+    <td>C. Replay moves from history</td>
+    <td>No domain changes</td>
+    <td>O(n) per load, doesn't restore undo stack</td>
+    <td>❌ Inadequate</td>
+  </tr>
+  <tr>
+    <td>D. Builder/Hydrator in Domain</td>
+    <td>Clean separation</td>
+    <td>More complex than needed</td>
+    <td>⚠️ Over-engineered</td>
+  </tr>
+</table>
+
+<h4>Recommended: Internal Reconstitution Constructor</h4>
+
+<p>Add one new <code>internal</code> constructor to the <code>Game</code> class (the <em>only</em> domain change):</p>
+
+<pre><code>// Add to Game.cs — internal constructor for persistence reconstitution
+internal Game(
+    GameId id,
+    GameMode mode,
+    GameStatus status,
+    Player currentPlayer,
+    Player? winner,
+    IReadOnlyList&lt;int&gt; winningCells,
+    Board board,
+    List&lt;Move&gt; moveHistory,
+    Stack&lt;GameMemento&gt; undoStack)
+{
+    Id = id;
+    Mode = mode;
+    Status = status;
+    CurrentPlayer = currentPlayer;
+    Winner = winner;
+    WinningCells = winningCells;
+    Board = board;
+    _moveHistory = moveHistory;
+    _undoStack = undoStack;
+}</code></pre>
+
+<div class="callout">
+  <strong>Visibility:</strong> The constructor is <code>internal</code>, so only the Infrastructure project (which has <code>InternalsVisibleTo</code>) can call it. External consumers and the API layer cannot bypass the normal <code>Game.Create()</code> factory.
+</div>
+
+<h3>17.5.5 SqliteScoreboardRepository</h3>
+
+<p><span class="file-ref">[NEW] Repositories/SqliteScoreboardRepository.cs</span></p>
+
+<pre><code>namespace TicTacToe.Infrastructure.Repositories;
+
+public sealed class SqliteScoreboardRepository : IScoreboardRepository
+{
+    private readonly TicTacToeDbContext _db;
+
+    public SqliteScoreboardRepository(TicTacToeDbContext db)
+    {
+        _db = db ?? throw new ArgumentNullException(nameof(db));
+    }
+
+    public async Task&lt;Scoreboard&gt; GetScoreboardAsync()
+    {
+        var entity = await _db.Scoreboards.FindAsync(1);
+        if (entity == null)
+        {
+            return new Scoreboard();
+        }
+        return new Scoreboard(entity.XWins, entity.OWins, entity.Draws);
+    }
+
+    public async Task SaveScoreboardAsync(Scoreboard scoreboard)
+    {
+        var entity = await _db.Scoreboards.FindAsync(1);
+        if (entity == null)
+        {
+            entity = new ScoreboardEntity { Id = 1 };
+            _db.Scoreboards.Add(entity);
+        }
+        entity.XWins = scoreboard.XWins;
+        entity.OWins = scoreboard.OWins;
+        entity.Draws = scoreboard.Draws;
+        entity.Version++;
+        await _db.SaveChangesAsync();
+    }
+}</code></pre>
+
+<hr class="section-divider">
+
+<h2>17.6 API Layer Changes — Program.cs Only</h2>
+
+<p>The <em>only</em> file modified in the API project is <code>Program.cs</code> — the DI composition root.</p>
+
+<h3>Before (In-Memory)</h3>
+<pre><code>// Authoritative In-Memory Repositories
+builder.Services.AddSingleton&lt;IGameRepository, InMemoryGameRepository&gt;();
+builder.Services.AddSingleton&lt;IScoreboardRepository, InMemoryScoreboardRepository&gt;();
+
+// Application Services (Singleton for lock persistence)
+builder.Services.AddSingleton&lt;IGameService, GameService&gt;();
+builder.Services.AddSingleton&lt;IScoreboardService, ScoreboardService&gt;();</code></pre>
+
+<h3>After (SQLite + EF Core)</h3>
+<pre><code>// SQLite Database Context
+builder.Services.AddDbContext&lt;TicTacToeDbContext&gt;(options =&gt;
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("GameDb")
+        ?? "Data Source=tictactoe.db"));
+
+// SQLite Repository Implementations
+builder.Services.AddScoped&lt;IGameRepository, SqliteGameRepository&gt;();
+builder.Services.AddScoped&lt;IScoreboardRepository, SqliteScoreboardRepository&gt;();
+
+// Application Services (Scoped to match DbContext lifetime)
+builder.Services.AddScoped&lt;IGameService, GameService&gt;();
+builder.Services.AddScoped&lt;IScoreboardService, ScoreboardService&gt;();
+
+// Ensure database is created on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider
+        .GetRequiredService&lt;TicTacToeDbContext&gt;();
+    db.Database.Migrate(); // Apply pending migrations
+}</code></pre>
+
+<h3>Service Lifetime Changes</h3>
+
+<table>
+  <tr><th>Service</th><th>Before (In-Memory)</th><th>After (SQLite)</th><th>Why Changed</th></tr>
+  <tr><td><code>IGameRepository</code></td><td>Singleton</td><td><strong>Scoped</strong></td><td>DbContext is Scoped (one per HTTP request); repository must match</td></tr>
+  <tr><td><code>IScoreboardRepository</code></td><td>Singleton</td><td><strong>Scoped</strong></td><td>Same reason — DbContext alignment</td></tr>
+  <tr><td><code>IGameService</code></td><td>Singleton</td><td><strong>Scoped</strong></td><td>Depends on Scoped repositories; cannot inject Scoped into Singleton</td></tr>
+  <tr><td><code>IScoreboardService</code></td><td>Singleton</td><td><strong>Scoped</strong></td><td>Same reason</td></tr>
+  <tr><td><code>IComputerMoveStrategy</code></td><td>Singleton</td><td>Singleton (unchanged)</td><td>Stateless — no DbContext dependency</td></tr>
+</table>
+
+<div class="callout warning">
+  <strong>Important — GameService Lock Migration:</strong> The current <code>GameService</code> uses a <code>ConcurrentDictionary&lt;GameId, SemaphoreSlim&gt;</code> for per-game locking. When changing to Scoped lifetime, this in-memory lock dictionary is recreated per request and <em>no longer works</em>. Two options:
+  <ol>
+    <li><strong>Extract locks to a Singleton service:</strong> Create an <code>IGameLockProvider</code> registered as Singleton that holds the lock dictionary</li>
+    <li><strong>Rely on database optimistic concurrency:</strong> Remove in-process locks entirely; let EF Core's concurrency token (<code>Version</code> column) detect conflicts and throw <code>DbUpdateConcurrencyException</code>, which the middleware maps to 409 Conflict</li>
+  </ol>
+</div>
+
+<h3>Configuration — appsettings.json</h3>
+<pre><code>{
+  "ConnectionStrings": {
+    "GameDb": "Data Source=tictactoe.db"
+  }
+}</code></pre>
+
+<hr class="section-divider">
+
+<h2>17.7 Concurrency Strategy Change</h2>
+
+<table>
+  <tr><th>Aspect</th><th>In-Memory (Current)</th><th>SQLite (After)</th></tr>
+  <tr><td>Locking</td><td>Pessimistic (SemaphoreSlim per game)</td><td>Optimistic (Version column)</td></tr>
+  <tr><td>Conflict detection</td><td>Prevented by mutex</td><td>Detected at <code>SaveChangesAsync()</code></td></tr>
+  <tr><td>Conflict response</td><td>Never occurs (serialized)</td><td><code>DbUpdateConcurrencyException</code> → 409 Conflict</td></tr>
+  <tr><td>Multi-instance safe</td><td>❌ No (single process only)</td><td>✅ Yes (file-level locking by SQLite)</td></tr>
+  <tr><td>Performance under contention</td><td>Queue (wait for lock)</td><td>Fail-fast (retry at client)</td></tr>
+</table>
+
+<h3>New Exception Mapping in Middleware</h3>
+<pre><code>// Add to ExceptionHandlingMiddleware.MapException()
+DbUpdateConcurrencyException ex => (
+    StatusCodes.Status409Conflict,
+    "Concurrent Modification",
+    "CONCURRENT_MODIFICATION",
+    "https://api.tictactoe.com/errors/concurrent-modification",
+    "The game was modified by another request. Please retry."
+),</code></pre>
+
+<hr class="section-divider">
+
+<h2>17.8 EF Core Migrations</h2>
+
+<h3>Generate Initial Migration</h3>
+<pre><code># From the backend/ directory
+dotnet ef migrations add InitialCreate \
+  --project TicTacToe.Infrastructure \
+  --startup-project TicTacToe.Api \
+  --output-dir Persistence/Migrations</code></pre>
+
+<h3>Apply Migration</h3>
+<pre><code>dotnet ef database update \
+  --project TicTacToe.Infrastructure \
+  --startup-project TicTacToe.Api</code></pre>
+
+<p>Alternatively, the migration is applied automatically at startup via <code>db.Database.Migrate()</code> in <code>Program.cs</code>.</p>
+
+<hr class="section-divider">
+
+<h2>17.9 Complete File Change List</h2>
+
+<table>
+  <tr><th>Action</th><th>File</th><th>Layer</th><th>Description</th></tr>
+  <tr>
+    <td style="color: #10b981; font-weight: 700;">[NEW]</td>
+    <td><code>Infrastructure/Persistence/TicTacToeDbContext.cs</code></td>
+    <td><span class="badge badge-infra">Infra</span></td>
+    <td>EF Core DbContext with entity configurations and seeding</td>
+  </tr>
+  <tr>
+    <td style="color: #10b981; font-weight: 700;">[NEW]</td>
+    <td><code>Infrastructure/Persistence/Entities/GameEntity.cs</code></td>
+    <td><span class="badge badge-infra">Infra</span></td>
+    <td>EF persistence model for the Game table</td>
+  </tr>
+  <tr>
+    <td style="color: #10b981; font-weight: 700;">[NEW]</td>
+    <td><code>Infrastructure/Persistence/Entities/MoveEntity.cs</code></td>
+    <td><span class="badge badge-infra">Infra</span></td>
+    <td>EF persistence model for the Moves table</td>
+  </tr>
+  <tr>
+    <td style="color: #10b981; font-weight: 700;">[NEW]</td>
+    <td><code>Infrastructure/Persistence/Entities/ScoreboardEntity.cs</code></td>
+    <td><span class="badge badge-infra">Infra</span></td>
+    <td>EF persistence model for the Scoreboard table</td>
+  </tr>
+  <tr>
+    <td style="color: #10b981; font-weight: 700;">[NEW]</td>
+    <td><code>Infrastructure/Repositories/SqliteGameRepository.cs</code></td>
+    <td><span class="badge badge-infra">Infra</span></td>
+    <td>IGameRepository implementation with aggregate reconstitution</td>
+  </tr>
+  <tr>
+    <td style="color: #10b981; font-weight: 700;">[NEW]</td>
+    <td><code>Infrastructure/Repositories/SqliteScoreboardRepository.cs</code></td>
+    <td><span class="badge badge-infra">Infra</span></td>
+    <td>IScoreboardRepository implementation</td>
+  </tr>
+  <tr>
+    <td style="color: #10b981; font-weight: 700;">[NEW]</td>
+    <td><code>Infrastructure/Persistence/Migrations/*.cs</code></td>
+    <td><span class="badge badge-infra">Infra</span></td>
+    <td>EF Core migration files (auto-generated)</td>
+  </tr>
+  <tr>
+    <td style="color: #f59e0b; font-weight: 700;">[MODIFY]</td>
+    <td><code>Infrastructure/TicTacToe.Infrastructure.csproj</code></td>
+    <td><span class="badge badge-infra">Infra</span></td>
+    <td>Add EF Core SQLite NuGet packages</td>
+  </tr>
+  <tr>
+    <td style="color: #f59e0b; font-weight: 700;">[MODIFY]</td>
+    <td><code>Api/Program.cs</code></td>
+    <td><span class="badge badge-api">API</span></td>
+    <td>Swap DI registrations, add DbContext, change lifetimes</td>
+  </tr>
+  <tr>
+    <td style="color: #f59e0b; font-weight: 700;">[MODIFY]</td>
+    <td><code>Api/appsettings.json</code></td>
+    <td><span class="badge badge-api">API</span></td>
+    <td>Add connection string</td>
+  </tr>
+  <tr>
+    <td style="color: #f59e0b; font-weight: 700;">[MODIFY]</td>
+    <td><code>Api/Middleware/ExceptionHandlingMiddleware.cs</code></td>
+    <td><span class="badge badge-api">API</span></td>
+    <td>Add DbUpdateConcurrencyException mapping</td>
+  </tr>
+  <tr>
+    <td style="color: #5b21b6; font-weight: 700;">[OPTIONAL]</td>
+    <td><code>Domain/Aggregates/Game.cs</code></td>
+    <td><span class="badge badge-domain">Domain</span></td>
+    <td>Add internal reconstitution constructor (only if using Approach A)</td>
+  </tr>
+  <tr>
+    <td style="color: #5b21b6; font-weight: 700;">[OPTIONAL]</td>
+    <td><code>Domain/TicTacToe.Domain.csproj</code></td>
+    <td><span class="badge badge-domain">Domain</span></td>
+    <td>Add <code>InternalsVisibleTo("TicTacToe.Infrastructure")</code></td>
+  </tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>17.10 Testing Impact</h2>
+
+<table>
+  <tr><th>Test Category</th><th>Impact</th><th>Action</th></tr>
+  <tr><td>Domain Unit Tests</td><td>✅ None</td><td>No changes needed — domain is persistence-agnostic</td></tr>
+  <tr><td>Application Service Tests</td><td>✅ None (if mocking repos)</td><td>Continue mocking <code>IGameRepository</code></td></tr>
+  <tr><td>Infrastructure Tests</td><td>⚠️ New tests needed</td><td>Add integration tests using SQLite in-memory mode (<code>"Data Source=:memory:"</code>)</td></tr>
+  <tr><td>API Integration Tests</td><td>⚠️ Minor changes</td><td>WebApplicationFactory may need to configure test DbContext</td></tr>
+  <tr><td>Frontend Tests</td><td>✅ None</td><td>API contract unchanged</td></tr>
+</table>
+
+<h3>SQLite In-Memory for Integration Tests</h3>
+<pre><code>// In test setup
+var connection = new SqliteConnection("Data Source=:memory:");
+connection.Open(); // Must keep open for lifetime of test
+
+services.AddDbContext&lt;TicTacToeDbContext&gt;(options =&gt;
+    options.UseSqlite(connection));
+
+// Ensure schema is created
+using var scope = serviceProvider.CreateScope();
+var db = scope.ServiceProvider.GetRequiredService&lt;TicTacToeDbContext&gt;();
+db.Database.EnsureCreated();</code></pre>
+
+<hr class="section-divider">
+
+<h2>17.11 Migration Checklist</h2>
+
+<table>
+  <tr><th>#</th><th>Step</th><th>Status</th></tr>
+  <tr><td>1</td><td>Add EF Core SQLite NuGet packages to Infrastructure project</td><td>☐</td></tr>
+  <tr><td>2</td><td>Create EF persistence entity models (GameEntity, MoveEntity, ScoreboardEntity)</td><td>☐</td></tr>
+  <tr><td>3</td><td>Create TicTacToeDbContext with entity configurations</td><td>☐</td></tr>
+  <tr><td>4</td><td>Add <code>InternalsVisibleTo</code> to Domain project for Infrastructure</td><td>☐</td></tr>
+  <tr><td>5</td><td>Add internal reconstitution constructor to Game aggregate</td><td>☐</td></tr>
+  <tr><td>6</td><td>Implement SqliteGameRepository with aggregate reconstitution</td><td>☐</td></tr>
+  <tr><td>7</td><td>Implement SqliteScoreboardRepository</td><td>☐</td></tr>
+  <tr><td>8</td><td>Generate EF Core initial migration</td><td>☐</td></tr>
+  <tr><td>9</td><td>Update Program.cs — swap DI registrations and add DbContext</td><td>☐</td></tr>
+  <tr><td>10</td><td>Add connection string to appsettings.json</td><td>☐</td></tr>
+  <tr><td>11</td><td>Add DbUpdateConcurrencyException mapping to middleware</td><td>☐</td></tr>
+  <tr><td>12</td><td>Decide on GameService lock strategy (extract to singleton or remove)</td><td>☐</td></tr>
+  <tr><td>13</td><td>Write integration tests for new repositories using SQLite in-memory</td><td>☐</td></tr>
+  <tr><td>14</td><td>Run full test suite — verify all 238 existing tests still pass</td><td>☐</td></tr>
+  <tr><td>15</td><td>Verify game state survives process restart</td><td>☐</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<h2>17.12 Architecture Validation — Before vs After</h2>
+
+<div class="diagram-box">
+  BEFORE                                    AFTER
+  ────────────────────                      ────────────────────
+  State: Process memory                     State: SQLite file (tictactoe.db)
+  Survives restart: ❌ No                   Survives restart: ✅ Yes
+  Multi-instance: ❌ No                     Multi-instance: ⚠️ Limited (file lock)
+  Concurrency: Pessimistic (SemaphoreSlim)  Concurrency: Optimistic (Version column)
+  Setup required: None                      Setup required: dotnet ef migrations
+  Domain changes: N/A                       Domain changes: 1 internal constructor
+  Application changes: N/A                  Application changes: None
+  Frontend changes: N/A                     Frontend changes: None
+  API contract changes: N/A                 API contract changes: None
+  New NuGet packages: None                  New packages: EF Core SQLite (2 packages)
+  New files: None                           New files: ~8 files
+  Modified files: None                      Modified files: ~4 files
+</div>
+
+
+<hr class="section-divider">
+
+<div class="footer">
+  <p><strong>Tic-Tac-Toe Enterprise Solution</strong> — Architecture &amp; Design Document v1.1</p>
+  <p>Generated September 2026 · .NET 8 · Angular 21 · DDD · Onion Architecture</p>
+  <p style="opacity: 0.7; font-size: 8pt;">Appendix A (SQLite Migration) added September 2026</p>
+</div>
+
+</div> <!-- /content -->
+
+</body>
+</html>
