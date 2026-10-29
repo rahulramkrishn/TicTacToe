@@ -4,7 +4,7 @@
   "ticket": "TTT-1",
   "prBase": "main",
   "branch": "feat/rahul/TTT-1_rematch-button",
-  "phase": "red",
+  "phase": "review",
   "base": {
     "feature": "2574cde71ec3a563f88742eab1b428c02ccada30",
     "red": "2574cde71ec3a563f88742eab1b428c02ccada30"
@@ -26,8 +26,58 @@
       "hash": "88d82fc326a653148ece4cbec5d6c34218a7a2b02782e0c46f480139a6fd4594"
     }
   },
-  "evidence": {},
-  "locked": {},
+  "evidence": {
+    "red": {
+      "phase": "red",
+      "scope": "fast",
+      "ok": false,
+      "exit": 1,
+      "at": "2026-10-29T17:29:26.522Z",
+      "fp": "2060fc10e9da836655919528b9c88892b6e922a785fab1baeba5e60292acf980",
+      "cmd": "dotnet test backend/TicTacToe.sln --filter \"Category!=Integration\" && npm --prefix frontend test -- --watch=false"
+    },
+    "green": {
+      "phase": "green",
+      "scope": "full",
+      "ok": true,
+      "exit": 0,
+      "at": "2026-10-29T17:44:32.185Z",
+      "fp": "2993bf1f1cbc6dc335e1b7b3e1fcbe9f85d992148809aa8f4c16e29e16ddda49",
+      "cmd": "dotnet test backend/TicTacToe.sln && npm --prefix frontend test -- --watch=false"
+    },
+    "full": {
+      "phase": "review",
+      "scope": "full",
+      "ok": true,
+      "exit": 0,
+      "at": "2026-10-29T18:13:03.380Z",
+      "fp": "e7cbdef1ea91d2d16836f49ef0b5d8cc5e2341f5e920f0d6ceb2c4a9268efc1d",
+      "cmd": "dotnet test backend/TicTacToe.sln && npm --prefix frontend test -- --watch=false"
+    },
+    "challenge": {
+      "phase": "challenge",
+      "scope": "fast",
+      "ok": true,
+      "exit": 0,
+      "at": "2026-10-29T18:10:59.557Z",
+      "fp": "e7cbdef1ea91d2d16836f49ef0b5d8cc5e2341f5e920f0d6ceb2c4a9268efc1d",
+      "cmd": "dotnet test backend/TicTacToe.sln --filter \"Category!=Integration\" && npm --prefix frontend test -- --watch=false"
+    },
+    "review": {
+      "phase": "review",
+      "scope": "full",
+      "ok": true,
+      "exit": 0,
+      "at": "2026-10-29T18:13:03.380Z",
+      "fp": "e7cbdef1ea91d2d16836f49ef0b5d8cc5e2341f5e920f0d6ceb2c4a9268efc1d",
+      "cmd": "dotnet test backend/TicTacToe.sln && npm --prefix frontend test -- --watch=false"
+    }
+  },
+  "locked": {
+    "frontend/src/app/components/status-banner/status-banner.spec.ts": "cd23362ba6bcc1dc87c1dfd72fc56f81f844283a0a44027e75954268befef1fc",
+    "frontend/src/app/rematch.journey.spec.ts": "155ee21c25df1e70bbbc1e6414fda2c5aa864e85ce68bed549008708e931c5ca",
+    "frontend/src/app/feature-flags.spec.ts": "f0897d820d43d48c1c34ffcb1835e58d88aa5e984ee804136fc9682f68bf04fc"
+  },
   "history": [
     {
       "at": "2026-10-29T17:00:59.768Z",
@@ -47,8 +97,23 @@
       "at": "2026-10-29T17:14:37.844Z",
       "from": "tests",
       "to": "red"
+    },
+    {
+      "at": "2026-10-29T17:42:16.363Z",
+      "from": "red",
+      "to": "green"
+    },
+    {
+      "at": "2026-10-29T18:05:51.991Z",
+      "from": "green",
+      "to": "challenge"
+    },
+    {
+      "at": "2026-10-29T18:12:48.264Z",
+      "from": "challenge",
+      "to": "review"
     }
   ],
   "v": 1,
-  "updatedAt": "2026-10-29T17:14:37.879Z"
+  "updatedAt": "2026-10-29T18:13:03.515Z"
 }
