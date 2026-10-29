@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GameFacade } from '../../services/game.facade';
+import { REMATCH_BUTTON_ENABLED } from '../../feature-flags';
 
 @Component({
   selector: 'app-status-banner',
@@ -11,4 +12,5 @@ import { GameFacade } from '../../services/game.facade';
 })
 export class StatusBannerComponent {
   readonly facade = inject(GameFacade);
+  readonly rematchEnabled = inject(REMATCH_BUTTON_ENABLED);
 }
