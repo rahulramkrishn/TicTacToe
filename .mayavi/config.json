@@ -1,0 +1,87 @@
+{
+  "version": 3,
+  "baseBranch": "main",
+  "protectedBranches": [
+    "main",
+    "master",
+    "dev",
+    "release/*"
+  ],
+  "baseBranchProtected": true,
+  "commands": {
+    "build": "dotnet build backend/TicTacToe.sln && npm --prefix frontend run build",
+    "fastTest": "dotnet test backend/TicTacToe.sln --filter \"Category!=Integration\"",
+    "fullTest": "dotnet test backend/TicTacToe.sln && npm --prefix frontend test -- --watch=false",
+    "lint": "",
+    "formatFile": "dotnet format backend/TicTacToe.sln --include {file}",
+    "mutation": ""
+  },
+  "testTimeoutSec": 600,
+  "enforcePhases": true,
+  "flagRequired": true,
+  "hotfixBase": "",
+  "hotfixMaxFiles": 3,
+  "taskMaxFiles": 5,
+  "portableProgress": true,
+  "branchPattern": "{type}/{user}/{ticket}_{desc}",
+  "ticketRequired": true,
+  "commitFormat": "conventional",
+  "commitTypes": [
+    "feat",
+    "fix",
+    "docs",
+    "style",
+    "refactor",
+    "perf",
+    "test",
+    "build",
+    "ci",
+    "chore",
+    "revert"
+  ],
+  "commitRequireTicket": true,
+  "commitMaxHeader": 72,
+  "gitProvider": "auto",
+  "azure": {},
+  "testGlobs": [
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/__tests__/**",
+    "**/test/**",
+    "**/tests/**",
+    "**/test_*.py",
+    "**/*_test.py",
+    "**/*_test.go",
+    "**/*Test.java",
+    "**/*Tests.java",
+    "**/*Test.cs",
+    "**/*Tests.cs",
+    "**/conftest.py",
+    "**/__snapshots__/**",
+    "**/*.feature"
+  ],
+  "protectedPaths": [
+    "legacy/**",
+    "**/package-lock.json",
+    "**/yarn.lock",
+    "**/pnpm-lock.yaml",
+    "**/poetry.lock",
+    "**/Cargo.lock",
+    "**/.env",
+    "**/.env.*",
+    "**/*.pem",
+    "**/*.key",
+    ".github/workflows/**"
+  ],
+  "immutableGlobs": [
+    "**/migrations/**",
+    "**/db/migrate/**"
+  ],
+  "alwaysWritable": [
+    ".mayavi/features/**",
+    ".mayavi/brainstorms/**",
+    "docs/**",
+    "**/*.md"
+  ],
+  "blockedBashPatterns": []
+}

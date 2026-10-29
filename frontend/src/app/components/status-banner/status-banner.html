@@ -30,6 +30,7 @@
           }
         </span>
       </div>
+      <ng-container *ngTemplateOutlet="rematch"></ng-container>
     </div>
   } @else if (facade.status() === 'Draw') {
     <div class="status-content draw">
@@ -38,6 +39,23 @@
         <span class="draw-title">Stalemate</span>
         <span class="draw-subtitle">Game ended in a Draw</span>
       </div>
+      <ng-container *ngTemplateOutlet="rematch"></ng-container>
     </div>
   }
 </div>
+
+<ng-template #rematch>
+  @if (rematchEnabled) {
+    <button
+      type="button"
+      class="action-btn rematch-btn"
+      id="btn-rematch"
+      [disabled]="facade.loading()"
+      [attr.aria-disabled]="facade.loading()"
+      (click)="facade.newGame(facade.mode())"
+      title="Start a new game in the same mode (scoreboard kept)">
+      <span class="btn-icon" aria-hidden="true">↻</span>
+      <span class="btn-text">Rematch</span>
+    </button>
+  }
+</ng-template>
