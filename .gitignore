@@ -81,3 +81,9 @@ Thumbs.db
 # ------------------------------------------------------------------------------
 !docs/
 !docs/**
+# mayavi
+.mayavi/state.json
+.mayavi/logs/
+.mayavi/audit.log
+.claude/settings.local.json
+.claude/worktrees/

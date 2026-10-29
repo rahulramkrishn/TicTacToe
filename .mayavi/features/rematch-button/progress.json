@@ -1,0 +1,54 @@
+{
+  "feature": "rematch-button",
+  "kind": "feature",
+  "ticket": "TTT-1",
+  "prBase": "main",
+  "branch": "feat/rahul/TTT-1_rematch-button",
+  "phase": "red",
+  "base": {
+    "feature": "2574cde71ec3a563f88742eab1b428c02ccada30",
+    "red": "2574cde71ec3a563f88742eab1b428c02ccada30"
+  },
+  "approved": {
+    "spec": {
+      "at": "2026-10-29T17:04:46.406Z",
+      "by": "rahul@missiondatum.com",
+      "hash": "66ecbb19f4a16f44f913471438ca2e254340ca92693dc052105f24aca4da6540"
+    },
+    "plan": {
+      "at": "2026-10-29T17:11:26.208Z",
+      "by": "rahul@missiondatum.com",
+      "hash": "c38fa0504fd5ef4ffda8ebcc92a18e070245e6894aac9a4029f9ca0baa4f49b8"
+    },
+    "test-plan": {
+      "at": "2026-10-29T17:13:14.954Z",
+      "by": "rahul@missiondatum.com",
+      "hash": "88d82fc326a653148ece4cbec5d6c34218a7a2b02782e0c46f480139a6fd4594"
+    }
+  },
+  "evidence": {},
+  "locked": {},
+  "history": [
+    {
+      "at": "2026-10-29T17:00:59.768Z",
+      "to": "spec"
+    },
+    {
+      "at": "2026-10-29T17:05:39.867Z",
+      "from": "spec",
+      "to": "plan"
+    },
+    {
+      "at": "2026-10-29T17:11:39.375Z",
+      "from": "plan",
+      "to": "tests"
+    },
+    {
+      "at": "2026-10-29T17:14:37.844Z",
+      "from": "tests",
+      "to": "red"
+    }
+  ],
+  "v": 1,
+  "updatedAt": "2026-10-29T17:14:37.879Z"
+}
